@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AssistMate.Api/AssistMate.Api.csproj" Id="ffec011a-2382-4385-8ce2-1e637e468619" />
+  <Project Path="AssistMate.Application/AssistMate.Application.csproj" Id="a350017d-d26a-434a-9e06-ef796dcc3659" />
+  <Project Path="AssistMate.Domain/AssistMate.Domain.csproj" Id="4799e54e-34f7-41bf-ab9b-ec6d9e5dff72" />
+  <Project Path="AssistMate.Infrastructure/AssistMate.Infrastructure.csproj" Id="e05a5eb9-dece-40ed-8a5c-579914e88b6d" />
+</Solution>
