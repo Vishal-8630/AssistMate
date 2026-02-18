@@ -1,0 +1,55 @@
+######################################
+# .NET / Visual Studio
+######################################
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Visual Studio cache/options
+.vs/
+
+# Test results
+TestResults/
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Entity Framework migrations temp
+*.db
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+######################################
+# ASP.NET Core
+######################################
+
+# Secrets
+appsettings.Development.json
+
+# Local development certificates
+*.pfx
+*.pem
+
+######################################
+# Publish output
+######################################
+
+publish/
