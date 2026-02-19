@@ -23,6 +23,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IAppDbContext>(provider =>
+    provider.GetRequiredService<AppDbContext>());
+
 
 // 🔐 JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
