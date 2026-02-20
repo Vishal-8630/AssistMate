@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AssistMate.Application.Common.Interfaces;
 using AssistMate.Infrastructure.Services;
+using AssistMate.Application.Auth.Interfaces;
+using AssistMate.Application.Auth.Services;
+using AssistMate.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -65,6 +69,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Exception Middleware
+app.UseMiddleware<ExceptionMiddleware>();
 
 // 🔐 IMPORTANT ORDER
 app.UseAuthentication();

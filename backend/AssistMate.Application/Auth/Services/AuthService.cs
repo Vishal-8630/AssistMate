@@ -47,7 +47,7 @@ namespace AssistMate.Application.Auth.Services
         {
             var otpRecord = await _dbContext.OtpVerifications
                 .Where(x => x.PhoneNumber == request.PhoneNumber && !x.IsUsed)
-                .OrderByDescending(x => x.ExpiresAt)
+                .OrderByDescending(x => x.CreatedAt)
                 .FirstOrDefaultAsync();
 
             if (otpRecord == null)
@@ -57,15 +57,14 @@ namespace AssistMate.Application.Auth.Services
                 throw new AppException("OTP expired.", 400);
 
             otpRecord.AttemptCount++;
-            if (otpRecord.AttemptCount > 3)
+            if (otpRecord.AttemptCount >= 3)
             {
+                otpRecord.IsUsed = true;
                 await _dbContext.SaveChangesAsync();
                 throw new AppException("Too many attempts. Request new OTP.", 400);
             }
 
-            var inputHash = OtpHasher.Hash(request.Otp);
-
-            if (otpRecord.OtpHash != inputHash)
+            if (!OtpHasher.Verify(request.Otp, otpRecord.OtpHash))
             {
                 await _dbContext.SaveChangesAsync();
                 throw new AppException("Incorrect OTP.", 400);
@@ -88,6 +87,10 @@ namespace AssistMate.Application.Auth.Services
                 };
 
                 _dbContext.Users.Add(user);
+            }
+            else
+            {
+                user.UpdatedAt = DateTime.UtcNow;
             }
 
             var accessToken = _jwtService.GenerateAccessToken(user);

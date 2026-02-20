@@ -12,5 +12,15 @@ namespace AssistMate.Application.Common.Security
             var hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
+
+        public static bool Verify(string otp, string storedHash)
+        {
+            var computedHash = Hash(otp);
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(computedHash),
+                Encoding.UTF8.GetBytes(storedHash)
+            );
+        }
     }
 }
