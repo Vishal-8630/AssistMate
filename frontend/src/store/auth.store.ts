@@ -1,47 +1,40 @@
+import { clearAccessToken, setAccessToken } from "@/lib/token-manager";
+import { User } from "@/types/user";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
-type UserRole = "client" | "assistant";
+type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
 interface AuthState {
-  isAuthenticated: boolean;
-  phone: string | null;
-  role: UserRole | null;
-  hasHydrated: boolean;
-  setHasHydrated: (hydrated: boolean) => void;
-  login: (phone: string, role: UserRole) => void;
-  logout: () => void;
+  user: User | null;
+  status: AuthStatus;
+
+  setAuthenticated: (user: User) => void;
+  setUnauthenticated: () => void;
+  setLoading: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      isAuthenticated: false,
-      phone: null,
-      role: null,
-      hasHydrated: false,
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  status: "loading",
 
-      setHasHydrated: (state) => set({ hasHydrated: state }),
+  setAuthenticated: (user: User) => {
+    set({
+      user,
+      status: "authenticated"
+    });
+  },
 
-      login: (phone, role) =>
-        set({
-          isAuthenticated: true,
-          phone,
-          role,
-        }),
+  setUnauthenticated: () => {
+    clearAccessToken();
+    set({
+      user: null,
+      status: "unauthenticated"
+    });
+  },
 
-      logout: () =>
-        set({
-          isAuthenticated: false,
-          phone: null,
-          role: null,
-        }),
-    }),
-    {
-      name: "assistmate-auth",
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-      },
-    },
-  ),
-);
+  setLoading: () => {
+    set({
+      status: "loading"
+    })
+  }
+}));

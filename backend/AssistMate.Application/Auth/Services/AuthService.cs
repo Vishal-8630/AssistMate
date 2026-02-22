@@ -1,5 +1,4 @@
-﻿using AssistMate.Application.Auth.DTOs;
-using AssistMate.Application.Auth.Interfaces;
+﻿using AssistMate.Application.Auth.Interfaces;
 using AssistMate.Application.Auth.Responses;
 using AssistMate.Application.Common.Interfaces;
 using AssistMate.Application.Common.Security;
@@ -7,6 +6,9 @@ using AssistMate.Application.Common.Exceptions;
 using AssistMate.Domain.Entities;
 using AssistMate.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using AssistMate.Application.Auth.DTOs.Requests;
+using AssistMate.Application.Auth.DTOs.Responses;
+using AssistMate.Application.Common.Mappings;
 
 namespace AssistMate.Application.Auth.Services
 {
@@ -21,7 +23,7 @@ namespace AssistMate.Application.Auth.Services
             _jwtService = jwtService;
         }
 
-        public async Task SendOtpAsync(SendOtpRequest request)
+        public async Task<SendOtpResponse> SendOtpAsync(SendOtpRequest request)
         {
             var otp = Random.Shared.Next(100000, 999999).ToString();
             var otpHash = OtpHasher.Hash(otp);
@@ -41,9 +43,11 @@ namespace AssistMate.Application.Auth.Services
             await _dbContext.SaveChangesAsync();
 
             Console.WriteLine($"DEBUG OTP: {otp}");
+
+            return new SendOtpResponse(Message: "OTP send successfully");
         }
 
-        public async Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request)
+        public async Task<VerifyOtpResponse> VerifyOtpAsync(VerifyOtpRequest request)
         {
             var otpRecord = await _dbContext.OtpVerifications
                 .Where(x => x.PhoneNumber == request.PhoneNumber && !x.IsUsed)
@@ -108,14 +112,10 @@ namespace AssistMate.Application.Auth.Services
             _dbContext.RefreshTokens.Add(refreshTokenEntity);
             await _dbContext.SaveChangesAsync();
 
-            return new AuthResponse
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            };
+            return new VerifyOtpResponse(AccessToken: accessToken, RefreshToken: refreshToken, User: user.ToDto());
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
+        public async Task<RefreshTokenResponse> RefreshTokenAsync(string refreshToken)
         {
             var storedToken = await _dbContext.RefreshTokens
                 .Include(rt => rt.User)
@@ -143,11 +143,7 @@ namespace AssistMate.Application.Auth.Services
             _dbContext.RefreshTokens.Add(newRefreshEntity);
             await _dbContext.SaveChangesAsync();
 
-            return new AuthResponse
-            {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken
-            };
+            return new RefreshTokenResponse(AccessToken: newAccessToken, RefreshToken: newRefreshToken);
         }
 
         public async Task LogoutAsync(string refreshToken)

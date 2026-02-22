@@ -16,6 +16,8 @@ namespace AssistMate.Domain.Entities
 
         public bool IsActive { get; set; } = true;
 
+        public bool IsProfileCompleted { get; set; } = false;
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
