@@ -1,24 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
-import { useLogout } from "@/features/auth/hooks";
+import { useLogout } from "@/features/auth/hooks/api-hooks";
+import { useProtectedPageGaurd } from "@/features/auth/hooks/use-page-gaurds";
+import { useAuthStatus } from "@/features/auth/hooks/use-auth-status";
+import { Loader } from "@/components/ui/loader";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, status } = useAuthStore();
   const logout = useLogout();
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
-    }
-  }, [status, router]);
+  const { isLoading } = useProtectedPageGaurd();
+  const { user } = useAuthStatus();
 
-  if (status === "loading") return null;
-  if (status === "unauthenticated") return null;
+  if (isLoading) return <Loader text="Loading dashboard..." />;
   if (!user) return null;
 
   return (

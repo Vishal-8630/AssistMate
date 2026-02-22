@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader } from "@/components/ui/loader";
 
 interface Props {
   phone: string;
@@ -18,6 +19,9 @@ export const PhoneForm = ({
   isLoading,
   error,
 }: Props) => {
+  
+  if (isLoading) return <Loader text="Sending OTP..." />
+
   return (
     <div className="space-y-4">
       <Input
@@ -29,7 +33,7 @@ export const PhoneForm = ({
       />
 
       <Button className="w-full" onClick={onSubmit} disabled={isLoading || phone.length != 10}>
-        {isLoading ? "Sending OTP..." : "Send OTP"}
+        Send OTP
       </Button>
 
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}

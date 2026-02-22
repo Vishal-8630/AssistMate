@@ -1,39 +1,27 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader } from "@/components/ui/loader";
 import { OtpForm } from "@/features/auth/components/OtpForm";
-import { useVerifyOtp } from "@/features/auth/hooks";
+import { useVerifyOtp } from "@/features/auth/hooks/api-hooks";
+import { usePublicPageWithQueryGaurd } from "@/features/auth/hooks/use-page-gaurds";
 import { validateOtp } from "@/features/auth/validation";
-import { useAuthStore } from "@/store/auth.store";
 import { VerifyOtpResponse } from "@/types/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function VerifyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const { status } = useAuthStore();
-
   const phone = searchParams.get("phone");
-  const verifyOtp = useVerifyOtp();
 
+  const { isLoading } = usePublicPageWithQueryGaurd(phone, "/login");
+
+  const verifyOtp = useVerifyOtp();
   const [otp, setOtp] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (!phone && status !== "loading") {
-      router.replace("/login");
-    }
-  }, [phone, status, router]);
-
-  if (status === "loading") return null;
+  if (isLoading) return <Loader text="Loading..." />;
   if (!phone) return null;
 
   const handleSubmit = () => {
@@ -50,11 +38,7 @@ export default function VerifyPage() {
       { phoneNumber: phone, otp },
       {
         onSuccess: (data: VerifyOtpResponse) => {
-          if (!data.user.isProfileCompleted) {
-            router.push("/profile");
-          } else {
-            router.push("/dashboard");
-          }
+          router.push(data.user.isProfileCompleted ? "/dashboard" : "/profile");
         },
         onError: (error: any) => {
           setFormError(

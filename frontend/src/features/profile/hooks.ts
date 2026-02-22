@@ -8,12 +8,12 @@ export const useUpdateProfile = (): UseMutationResult<
   Error,
   UpdateProfileRequest
 > => {
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuthenticated = useAuthStore((s) => s.setAuthenticated);
 
   return useMutation<UpdateProfileResponse, Error, UpdateProfileRequest>({
     mutationFn: updateProfile,
     onSuccess: (response) => {
-      setAuth(response.user);
+      setAuthenticated(response.user);
     },
   });
 };

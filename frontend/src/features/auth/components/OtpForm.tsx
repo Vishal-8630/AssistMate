@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader } from "@/components/ui/loader";
 
 interface Props {
   otp: string;
@@ -16,6 +17,9 @@ export const OtpForm = ({
   isLoading,
   error,
 }: Props) => {
+
+  if (isLoading) return <Loader text="Verifying OTP" />
+
   return (
     <div className="space-y-4">
       <Input
@@ -31,7 +35,7 @@ export const OtpForm = ({
         onClick={onSubmit}
         disabled={isLoading || otp.length != 6}
       >
-        {isLoading ? "Verifying..." : "Verify OTP"}
+        Verify OTP
       </Button>
 
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}

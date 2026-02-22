@@ -1,30 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSendOtp } from "@/features/auth/hooks";
+import { useSendOtp } from "@/features/auth/hooks/api-hooks";
 import { PhoneForm } from "@/features/auth/components/PhoneForm";
 import { validatePhone } from "@/features/auth/validation";
-import { useAuthStore } from "@/store/auth.store";
+import { Loader } from "@/components/ui/loader";
+import { usePublicPageGaurd } from "@/features/auth/hooks/use-page-gaurds";
 
 export default function LoginPage() {
   const router = useRouter();
   const sendOtp = useSendOtp();
 
-  const { status } = useAuthStore();
+  const { isLoading } = usePublicPageGaurd();
 
   const [phone, setPhone] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard");
-    }
-  }, [status, router]);
-
-  if (status === "loading") return null;
-  if (status === "authenticated") return null;
+  if (isLoading) return <Loader text="Loading..." />;
 
   const handleSubmit = () => {
     const validationError = validatePhone(phone);

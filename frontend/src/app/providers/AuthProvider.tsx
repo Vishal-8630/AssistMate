@@ -1,6 +1,7 @@
 "use client";
 
-import { useMe } from "@/features/auth/hooks";
+import { Loader } from "@/components/ui/loader";
+import { useMe } from "@/features/auth/hooks/api-hooks";
 import { useAuthStore } from "@/store/auth.store";
 import { ReactNode, useEffect } from "react";
 
@@ -24,7 +25,7 @@ export const AuthProvider = ({ children }: Props) => {
   }, [isSuccess, isError, setAuthenticated, setUnauthenticated]);
 
   if (status === "loading" || isLoading) {
-    return null; // or loader
+    return <Loader text="Loading..." />;
   }
 
   return <>{children}</>;

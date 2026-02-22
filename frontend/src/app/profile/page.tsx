@@ -1,6 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader } from "@/components/ui/loader";
+import {
+  useProfileIncompleteGaurd,
+  useProtectedPageGaurd,
+} from "@/features/auth/hooks/use-page-gaurds";
 import { ProfileForm } from "@/features/profile/components/ProfileForm";
 import { useUpdateProfile } from "@/features/profile/hooks";
 import {
@@ -8,14 +13,14 @@ import {
   UpdateProfileRequest,
 } from "@/features/profile/types";
 import { validateProfile } from "@/features/profile/validation";
-import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
   const updateProfile = useUpdateProfile();
-  const { user, status } = useAuthStore();
+
+  const { isLoading } = useProfileIncompleteGaurd();
 
   const [values, setValues] = useState<ProfileFormValues>({
     firstName: "",
@@ -26,17 +31,7 @@ export default function ProfilePage() {
 
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (user && user.firstName && user.lastName && user.role) {
-      router.replace("/dashboard");
-    }
-  }, [user, router]);
+  if (isLoading) return <Loader text="Loading profile..." />;
 
   const handleSubmit = () => {
     const validationError = validateProfile(values);
@@ -64,14 +59,6 @@ export default function ProfilePage() {
       },
     });
   };
-
-  if (status === "loading") {
-    return null; // loader
-  }
-
-  if (status === "unauthenticated") {
-    return null;
-  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">

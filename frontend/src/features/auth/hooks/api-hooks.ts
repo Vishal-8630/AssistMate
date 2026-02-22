@@ -7,7 +7,7 @@ import {
   useQueryClient,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { getMe, logoutUser, sendOtp, verifyOtp } from "./api";
+import { getMe, logoutUser, sendOtp, verifyOtp } from "../api";
 import { useAuthStore } from "@/store/auth.store";
 import { clearAccessToken, setAccessToken } from "@/lib/token-manager";
 import {

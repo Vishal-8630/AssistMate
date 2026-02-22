@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { ProfileFormValues } from "../types";
 import { RoleSelector } from "./RoleSelector";
 import { Button } from "@/components/ui/button";
+import { Loader } from "@/components/ui/loader";
 
 interface Props {
   values: ProfileFormValues;
@@ -24,6 +25,8 @@ export const ProfileForm = ({
   ) => {
     onChange({ ...values, [key]: value });
   };
+
+  if (isLoading) <Loader text="Saving profile..." />
 
   return (
     <div className="space-y-4">
@@ -54,7 +57,7 @@ export const ProfileForm = ({
       {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
       <Button className="w-full" onClick={onSubmit} disabled={isLoading}>
-        {isLoading ? "Saving..." : "Save & Continue"}
+        Save & Continue
       </Button>
     </div>
   );
