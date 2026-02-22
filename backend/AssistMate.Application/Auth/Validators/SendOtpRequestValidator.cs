@@ -1,4 +1,4 @@
-﻿using AssistMate.Application.Auth.DTOs;
+﻿using AssistMate.Application.Auth.DTOs.Requests;
 using FluentValidation;
 
 namespace AssistMate.Application.Auth.Validators

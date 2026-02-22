@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AssistMate.Infrastructure.Data;
-using AssistMate.Application.Auth.DTOs;
-using AssistMate.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using AssistMate.Application.Common.Security;
-using AssistMate.Application.Common.Interfaces;
 using AssistMate.Application.Auth.Interfaces;
+using AssistMate.Application.Auth.DTOs.Requests;
 
 namespace AssistMate.Api.Controllers
 {
@@ -23,8 +18,8 @@ namespace AssistMate.Api.Controllers
         [HttpPost("send-otp")]
         public async Task<IActionResult> SendOtp(SendOtpRequest request)
         {
-            await _authService.SendOtpAsync(request);
-            return Ok(new { message = "OTP send successfully" });
+            var result = await _authService.SendOtpAsync(request);
+            return Ok(new { message = result.Message });
         }
 
         [HttpPost("verify-otp")]
@@ -35,14 +30,15 @@ namespace AssistMate.Api.Controllers
             Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false, // true in production (https)
-                SameSite = SameSiteMode.Strict,
+                Secure = true,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
             return Ok(new
             {
-                accessToken = result.AccessToken
+                accessToken = result.AccessToken,
+                user = result.User
             });
         }
 
@@ -58,8 +54,8 @@ namespace AssistMate.Api.Controllers
             Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Strict,
+                Secure = true,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
