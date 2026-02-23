@@ -18,6 +18,8 @@ namespace AssistMate.Domain.Entities
 
         public bool IsProfileCompleted { get; set; } = false;
 
+        public ICollection<AssistantService> AssistantServices { get; private set; } = new List<AssistantService>();
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
