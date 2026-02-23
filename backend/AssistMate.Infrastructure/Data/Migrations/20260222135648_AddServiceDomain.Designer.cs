@@ -3,6 +3,7 @@ using System;
 using AssistMate.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AssistMate.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222135648_AddServiceDomain")]
+    partial class AddServiceDomain
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,29 +127,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Services", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("8f4a2c3e-6d91-4f8e-bf2d-2e3d9b1a7c10"),
-                            Description = "Technical help and troubleshooting",
-                            IsActive = true,
-                            Name = "Tech Support"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2a9d5f1-3b74-4d6f-9e8a-5f3b1c7d9a21"),
-                            Description = "Basic legal consultation",
-                            IsActive = true,
-                            Name = "Legal Advice"
-                        },
-                        new
-                        {
-                            Id = new Guid("5d7e9a12-4c3f-4b8a-91e6-7f2a3c9d8b32"),
-                            Description = "Personal fitness guidance",
-                            IsActive = true,
-                            Name = "Fitness Coaching"
-                        });
                 });
 
             modelBuilder.Entity("AssistMate.Domain.Entities.User", b =>

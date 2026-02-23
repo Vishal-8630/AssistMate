@@ -14,6 +14,8 @@ using AssistMate.Api.Middlewares;
 using AssistMate.Application.Users.Validators;
 using AssistMate.Application.Users.Interfaces;
 using AssistMate.Application.Users.Services;
+using AssistMate.Application.Services.Interfaces;
+using AssistMate.Application.Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +87,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
 
 var app = builder.Build();
 
