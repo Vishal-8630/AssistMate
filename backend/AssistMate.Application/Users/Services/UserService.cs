@@ -59,7 +59,7 @@ namespace AssistMate.Application.Users.Services
             _dbContext.RefreshTokens.Add(refreshTokenEntity);
             await _dbContext.SaveChangesAsync();
 
-            return new UpdateProfileResponse(AccessToken: newAccessToken, RefreshToken: newRefreshToken, User: user.ToDto());
+            return new UpdateProfileResponse(AccessToken: newAccessToken, RefreshToken: newRefreshToken, User: user.ToUserDto());
         }
 
         public async Task<GetUserByIdResponse> GetUserByIdAsync(Guid userId)
@@ -70,7 +70,7 @@ namespace AssistMate.Application.Users.Services
             if (user == null)
                 throw new AppException("Unauthorized", 401);
 
-            return new GetUserByIdResponse(User: user.ToDto());
+            return new GetUserByIdResponse(User: user.ToUserDto());
         }
     }
 }

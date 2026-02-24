@@ -21,7 +21,7 @@ namespace AssistMate.Application.Services.Services
         public async Task<List<ServiceDto>> GetAllServicesAsync()
         {
             return await _dbContext.Services
-                .Select(s => s.ToDto())
+                .Select(s => s.ToServiceDto())
                 .ToListAsync();
         }
 
@@ -29,7 +29,7 @@ namespace AssistMate.Application.Services.Services
         {
             return await _dbContext.AssistantServices
                 .Where(x => x.AssistantId == userId)
-                .Select(x => x.Service.ToDto())
+                .Select(x => x.Service.ToServiceDto())
                 .ToListAsync();
         }
 
@@ -68,6 +68,51 @@ namespace AssistMate.Application.Services.Services
 
             await _dbContext.AssistantServices.AddRangeAsync(newMappings, cancellationToken);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<AssistantListDto>> GetAssistantsByServiceAsync(Guid serviceId)
+        {
+            if (serviceId == Guid.Empty)
+                throw new AppException("Invalid service id.");
+
+            var serviceExists = await _dbContext.Services
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == serviceId);
+
+            if (!serviceExists)
+                throw new AppException("Service not found", 404);
+
+            var assistants = await _dbContext.AssistantServices
+                .AsNoTracking()
+                .Where(x => x.ServiceId == serviceId)
+                .Select(x => x.Assistant)
+                .Where(u => u.Role == UserRole.Assistant && u.IsActive && u.IsProfileCompleted)
+                .Select(u => u.ToAssistantListDto())
+                .ToListAsync();
+
+            return assistants;
+        }
+
+        public async Task<AssistantProfileDto> GetAssistantByIdAsync(Guid assistantId)
+        {
+            if (assistantId == Guid.Empty)
+                throw new AppException("Invalid assistant id.");
+
+            var assistant = await _dbContext.Users
+                .AsNoTracking()
+                .Include(u => u.AssistantServices)
+                    .ThenInclude(x => x.Service)
+                .FirstOrDefaultAsync(u =>
+                    u.Id == assistantId &&
+                    u.Role == UserRole.Assistant &&
+                    u.IsActive &&
+                    u.IsProfileCompleted
+               );
+
+            if (assistant == null)
+                throw new AppException("Assistant not found", 404);
+
+            return assistant.ToAssistantProfileDto();
         }
     }
 }

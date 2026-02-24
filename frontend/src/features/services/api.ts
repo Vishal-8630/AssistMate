@@ -16,3 +16,8 @@ export const updateMyServices = async (
 ): Promise<void> => {
   await api.put("/services/me", payload);
 };
+
+export const getAssistantsByService = async (serviceId: string) => {
+  const { data } = await api.get(`/services/${serviceId}/assistants`);
+  return data;
+};
