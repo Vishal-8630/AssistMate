@@ -30,20 +30,23 @@ export const useProfileRequiredGaurd = () => {
   return { isLoading };
 };
 
-export const useProfileIncompleteGaurd = (loginRedirect: string = "/login", completeRedirect: string = "/dashboard") => {
+export const useProfileIncompleteGuard = (
+  loginRedirect: string = "/login",
+  completeRedirect?: string,
+) => {
   const router = useRouter();
   const { user, isLoading } = useAuthStatus();
 
   useRequireAuth(loginRedirect);
 
   useEffect(() => {
-    if (!isLoading && user?.isProfileCompleted) {
+    if (completeRedirect && !isLoading && user?.isProfileCompleted) {
       router.replace(completeRedirect);
     }
   }, [user, isLoading, router, completeRedirect]);
 
   return { isLoading };
-}
+};
 
 export const usePublicPageWithQueryGaurd = (
   queryValue: string | null,

@@ -16,6 +16,7 @@ using AssistMate.Application.Users.Interfaces;
 using AssistMate.Application.Users.Services;
 using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,7 +79,10 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
-        )
+        ),
+
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.NameIdentifier
     };
 });
 

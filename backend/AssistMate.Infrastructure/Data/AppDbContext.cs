@@ -15,7 +15,7 @@ namespace AssistMate.Infrastructure.Data
         public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Service> Services => Set<Service>();
-        public DbSet<AssistantService> AssistantService => Set<AssistantService>();
+        public DbSet<AssistantService> AssistantServices => Set<AssistantService>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

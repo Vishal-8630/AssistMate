@@ -15,5 +15,6 @@ export interface UpdateProfileRequest {
 }
 
 export interface UpdateProfileResponse {
+    accessToken: string;
     user: User
 }
