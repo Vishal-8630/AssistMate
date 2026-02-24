@@ -112,7 +112,7 @@ namespace AssistMate.Application.Auth.Services
             _dbContext.RefreshTokens.Add(refreshTokenEntity);
             await _dbContext.SaveChangesAsync();
 
-            return new VerifyOtpResponse(AccessToken: accessToken, RefreshToken: refreshToken, User: user.ToDto());
+            return new VerifyOtpResponse(AccessToken: accessToken, RefreshToken: refreshToken, User: user.ToUserDto());
         }
 
         public async Task<RefreshTokenResponse> RefreshTokenAsync(string refreshToken)

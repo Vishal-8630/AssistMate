@@ -5,7 +5,7 @@ namespace AssistMate.Application.Common.Mappings
 {
     public static class UserMapper
     {
-        public static UserDto ToDto(this User user)
+        public static UserDto ToUserDto(this User user)
         {
             return new UserDto(
                 user.Id,

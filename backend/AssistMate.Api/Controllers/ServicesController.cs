@@ -38,12 +38,17 @@ namespace AssistMate.Api.Controllers
         public async Task<IActionResult> UpdateMyServices(UpdateAssistantServicesRequest request, CancellationToken cancellationToken)
         {
             var userId = User.GetUserId();
-            foreach (var claim in User.Claims)
-            {
-                Console.WriteLine($"{claim.Type} : {claim.Value}");
-            }
             await _serviceManager.UpdateAssistantServicesAsync(userId, request, cancellationToken);
             return NoContent();
+        }
+
+        [HttpGet("{id:guid}/assistants")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAssistantByService(Guid id)
+        {
+            var assistants = await _serviceManager.GetAssistantsByServiceAsync(id);
+
+            return Ok(assistants);
         }
     }
 }

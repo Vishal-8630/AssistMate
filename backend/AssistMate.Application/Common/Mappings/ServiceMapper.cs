@@ -5,7 +5,7 @@ namespace AssistMate.Application.Common.Mappings
 {
     public static class ServiceMapper
     {
-        public static ServiceDto ToDto(this Service service)
+        public static ServiceDto ToServiceDto(this Service service)
         {
             return new ServiceDto(
                 service.Id,
