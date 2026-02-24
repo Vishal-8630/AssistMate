@@ -38,7 +38,7 @@ export default function VerifyPage() {
       { phoneNumber: phone, otp },
       {
         onSuccess: (data: VerifyOtpResponse) => {
-          router.push(data.user.isProfileCompleted ? "/dashboard" : "/profile");
+          router.push(data.user.isProfileCompleted ? "/dashboard" : "/onboarding");
         },
         onError: (error: any) => {
           setFormError(

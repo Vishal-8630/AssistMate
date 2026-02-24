@@ -42,15 +42,23 @@ namespace AssistMate.Api.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile(UpdateProfileRequest request)
         {
-            Console.WriteLine("Hitting the route");
-
             var userId = User.GetUserId();
 
-            Console.WriteLine($"User Id: ${userId}");
+            var result = await _userService.UpdateProfileAsync(userId, request);
 
-            var response = await _userService.UpdateProfileAsync(userId, request);
+            Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions()
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddMinutes(15)
+            });
 
-            return Ok(response);
+            return Ok(new
+            {
+                accessToken = result.AccessToken,
+                user = result.User
+            });
         }
     }
 }

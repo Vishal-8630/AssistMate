@@ -1,4 +1,4 @@
 ﻿namespace AssistMate.Application.Users.DTOs
 {
-    public record UpdateProfileResponse(UserDto User);
+    public record UpdateProfileResponse(string AccessToken, string RefreshToken, UserDto User);
 }
