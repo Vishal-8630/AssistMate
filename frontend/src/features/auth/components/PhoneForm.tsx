@@ -19,24 +19,53 @@ export const PhoneForm = ({
   isLoading,
   error,
 }: Props) => {
-  
-  if (isLoading) return <Loader text="Sending OTP..." />
+  const isValid = phone.length === 10;
 
   return (
-    <div className="space-y-4">
-      <Input
-        type="tel"
-        placeholder="Enter 10-digit phone number"
-        value={phone}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
-        maxLength={10}
-      />
+    <div className="space-y-5">
+      {/* Phone Field */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          Phone Number
+        </label>
 
-      <Button className="w-full" onClick={onSubmit} disabled={isLoading || phone.length != 10}>
-        Send OTP
+        <Input
+          type="tel"
+          inputMode="numeric"
+          placeholder="Enter 10-digit phone number"
+          value={phone}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+          maxLength={10}
+          className="h-11 text-base"
+        />
+
+        <p className="text-xs text-muted-foreground">
+          We'll send a verification code to this number.
+        </p>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <p className="text-sm text-red-500 text-center font-medium">
+          {error}
+        </p>
+      )}
+
+      {/* Submit Button */}
+      <Button
+        className="w-full h-11 text-base font-semibold"
+        onClick={onSubmit}
+        disabled={isLoading || !isValid}
+      >
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader text="" />
+            Sending OTP...
+          </span>
+        ) : (
+          "Send OTP"
+        )}
       </Button>
-
-      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
     </div>
   );
 };
