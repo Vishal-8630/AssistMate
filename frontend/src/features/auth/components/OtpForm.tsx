@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
@@ -17,28 +19,53 @@ export const OtpForm = ({
   isLoading,
   error,
 }: Props) => {
-
-  if (isLoading) return <Loader text="Verifying OTP" />
+  const isValid = otp.length === 6;
 
   return (
-    <div className="space-y-4">
-      <Input
-        type="text"
-        placeholder="Enter 6-digit OTP"
-        value={otp}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
-        maxLength={6}
-      />
+    <div className="space-y-5">
+      {/* OTP Field */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          Verification Code
+        </label>
 
+        <Input
+          type="text"
+          inputMode="numeric"
+          placeholder="Enter 6-digit code"
+          value={otp}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+          maxLength={6}
+          className="h-11 text-base tracking-widest text-center"
+        />
+
+        <p className="text-xs text-muted-foreground">
+          Enter the 6-digit code sent to your phone.
+        </p>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <p className="text-sm text-red-500 text-center font-medium">
+          {error}
+        </p>
+      )}
+
+      {/* Submit Button */}
       <Button
-        className="w-full"
+        className="w-full h-11 text-base font-semibold"
         onClick={onSubmit}
-        disabled={isLoading || otp.length != 6}
+        disabled={isLoading || !isValid}
       >
-        Verify OTP
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader text="" />
+            Verifying...
+          </span>
+        ) : (
+          "Verify Code"
+        )}
       </Button>
-
-      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
     </div>
   );
 };
