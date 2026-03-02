@@ -17,12 +17,14 @@ using AssistMate.Application.Users.Services;
 using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.Services;
 using System.Security.Claims;
+using AssistMate.Infrastructure.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddOpenApi();
 
 builder.Services.AddValidatorsFromAssemblyContaining<VerifyOtpRequestValidator>();
@@ -35,6 +37,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IAppDbContext>(provider =>
     provider.GetRequiredService<AppDbContext>());
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(AssistMate.Application.AssemblyReference).Assembly);
+});
 
 builder.Services
     .AddControllers()
@@ -84,6 +91,22 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = ClaimTypes.Role,
         NameClaimType = ClaimTypes.NameIdentifier
     };
+
+    options.Events = new JwtBearerEvents()
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access-token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/session"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -92,6 +115,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
 
 var app = builder.Build();
 
@@ -111,6 +135,7 @@ app.UseCors("FrontendPolicy");
 // 🔐 IMPORTANT ORDER
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<SessionHub>("/hubs/session");
 
 app.MapControllers();
 

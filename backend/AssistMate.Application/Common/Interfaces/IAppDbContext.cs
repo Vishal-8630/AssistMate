@@ -10,7 +10,8 @@ namespace AssistMate.Application.Common.Interfaces
         DbSet<RefreshToken> RefreshTokens { get; }
         DbSet<Service> Services { get; }
         DbSet<AssistantService> AssistantServices { get; }
-
+        DbSet<Session> Sessions { get; }
+        DbSet<SessionMessage> SessionMessages { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellation = default);
     }
 }
