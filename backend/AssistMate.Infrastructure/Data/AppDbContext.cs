@@ -16,6 +16,8 @@ namespace AssistMate.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Service> Services => Set<Service>();
         public DbSet<AssistantService> AssistantServices => Set<AssistantService>();
+        public DbSet<Session> Sessions => Set<Session>();
+        public DbSet<SessionMessage> SessionMessages => Set<SessionMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

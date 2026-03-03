@@ -17,12 +17,14 @@ using AssistMate.Application.Users.Services;
 using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.Services;
 using System.Security.Claims;
+using AssistMate.Infrastructure.Realtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddOpenApi();
 
 builder.Services.AddValidatorsFromAssemblyContaining<VerifyOtpRequestValidator>();
@@ -35,6 +37,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IAppDbContext>(provider =>
     provider.GetRequiredService<AppDbContext>());
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(AssistMate.Application.AssemblyReference).Assembly);
+});
 
 builder.Services
     .AddControllers()
@@ -51,7 +58,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://192.168.31.250:3000"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -84,7 +94,29 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = ClaimTypes.Role,
         NameClaimType = ClaimTypes.NameIdentifier
     };
+
+    options.Events = new JwtBearerEvents()
+    {
+        OnMessageReceived = context =>
+        {
+            var path = context.HttpContext.Request.Path;
+
+            if (path.StartsWithSegments("/hubs/session"))
+            {
+
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthorization();
 
@@ -92,6 +124,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
+builder.Services.AddScoped<ISessionAuthorizationService, SessionAuthorizationService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
 
 var app = builder.Build();
 
@@ -111,6 +146,7 @@ app.UseCors("FrontendPolicy");
 // 🔐 IMPORTANT ORDER
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<SessionHub>("/hubs/session");
 
 app.MapControllers();
 
