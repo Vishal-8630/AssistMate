@@ -14,11 +14,13 @@ namespace AssistMate.Infrastructure.Realtime
     {
         private readonly IAppDbContext _dbContext;
         private readonly IPresenceTracker _presenceTracker;
+        private readonly ISessionAuthorizationService _sessionAuth;
 
-        public SessionHub(IAppDbContext dbContext, IPresenceTracker presenceTracker)
+        public SessionHub(IAppDbContext dbContext, IPresenceTracker presenceTracker, ISessionAuthorizationService sessionAuth)
         {
             _dbContext = dbContext;
             _presenceTracker = presenceTracker;
+            _sessionAuth = sessionAuth;
         }
 
         public override async Task OnConnectedAsync()
@@ -63,6 +65,11 @@ namespace AssistMate.Infrastructure.Realtime
             if (!Guid.TryParse(userIdString, out var userId))
                 return;
 
+            var isParticipant = await _sessionAuth.IsUserParticipantAsync(sessionId, userId);
+
+            if (!isParticipant)
+                return;
+
             var groupName = GetSessionGroup(sessionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
@@ -89,6 +96,16 @@ namespace AssistMate.Infrastructure.Realtime
             if (string.IsNullOrWhiteSpace(content))
                 throw new HubException("Message cannot be empty");
 
+            var isParticipant = await _sessionAuth.IsUserParticipantAsync(sessionId, userId);
+
+            if (!isParticipant)
+                return;
+
+            var isActive = await _sessionAuth.IsSessionActiveAsync(sessionId);
+
+            if (!isActive)
+                return;
+
             if (content.Length > 2000)
                 throw new HubException("Message too long");
 
@@ -106,6 +123,7 @@ namespace AssistMate.Infrastructure.Realtime
             if (session.Status != SessionStatus.Active)
                 throw new HubException("Session is not active");
 
+            // Need to refactor this code into Application project
             var message = new SessionMessage
             {
                 Id = Guid.NewGuid(),
@@ -148,6 +166,16 @@ namespace AssistMate.Infrastructure.Realtime
             var userIdString = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (!Guid.TryParse(userIdString, out var userId))
+                return;
+
+            var isParticipant = await _sessionAuth.IsUserParticipantAsync(sessionId, userId);
+
+            if (!isParticipant)
+                return;
+
+            var isActive = await _sessionAuth.IsSessionActiveAsync(sessionId);
+
+            if (!isActive)
                 return;
 
             var unreadMessages = await _dbContext.SessionMessages

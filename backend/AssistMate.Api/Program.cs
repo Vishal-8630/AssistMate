@@ -58,7 +58,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://192.168.31.250:3000"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -96,18 +99,24 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            var accessToken = context.Request.Query["access-token"];
             var path = context.HttpContext.Request.Path;
 
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/session"))
+            if (path.StartsWithSegments("/hubs/session"))
             {
-                context.Token = accessToken;
+
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
             }
 
             return Task.CompletedTask;
         }
     };
 });
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthorization();
 
@@ -116,6 +125,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
+builder.Services.AddScoped<ISessionAuthorizationService, SessionAuthorizationService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
 
 var app = builder.Build();
 
