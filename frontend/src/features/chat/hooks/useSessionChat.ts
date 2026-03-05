@@ -1,92 +1,56 @@
 import { useEffect, useRef, useState } from "react";
-import * as signalR from "@microsoft/signalr";
 import axios from "@/lib/api-client";
-import { getAccessToken } from "@/lib/token-manager";
-import { SessionMessage } from "../types";
 import { useAuthStatus } from "@/features/auth/hooks/use-auth-status";
+import { useSignalRConnection } from "./useSignalRConnection";
+import { useChatMessages } from "./useChatMessages";
+import { useChatPresence } from "./useChatPresence";
 
 export const useSessionChat = (sessionId: string) => {
-  const connectionRef = useRef<signalR.HubConnection | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentUserIdRef = useRef<string | undefined>(undefined);
+  const { user } = useAuthStatus();
 
-  const [messages, setMessages] = useState<SessionMessage[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const { connectionRef, connect, disconnect, isConnected } =
+    useSignalRConnection();
+
+  const { messages, setMessages, addMessage, markMessagesRead } =
+    useChatMessages();
+
+  const { onlineUsers, setInitialUsers, userOnline, userOffline } =
+    useChatPresence();
+
+  const [isTyping, setIsTyping] = useState(false);
+  const [sessionStatus, setSessionStatus] =
+    useState<"active" | "completed">("active");
+
   const [otherParticipant, setOtherParticipant] = useState<{
     id: string;
     name: string;
   } | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
 
-  const { user } = useAuthStatus();
-
-  // Keep latest user id
-  useEffect(() => {
-    currentUserIdRef.current = user?.id;
-  }, [user?.id]);
-
-  // Cleanup on logout
-  useEffect(() => {
-    if (!user) {
-      const connection = connectionRef.current;
-      if (connection) {
-        connection.stop().catch(() => {});
-        connectionRef.current = null;
-      }
-      setIsConnected(false);
-      setOnlineUsers([]);
-    }
-  }, [user]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!sessionId) return;
 
     let isMounted = true;
 
-    const safeInvoke = async (method: string, ...args: any[]) => {
-      const connection = connectionRef.current;
-      if (!connection) return;
-      if (connection.state !== signalR.HubConnectionState.Connected) return;
-
-      try {
-        await connection.invoke(method, ...args);
-      } catch (error) {
-        console.warn(`${method} skipped:`, error);
-      }
-    };
-
     const init = async () => {
       try {
-        // 1️⃣ Load chat history
-        const { data } = await axios.get<SessionMessage[]>(
-          `/sessions/${sessionId}/messages`,
-        );
-
+        // 1️⃣ Load message history
+        const { data } = await axios.get(`/sessions/${sessionId}/messages`);
         if (!isMounted) return;
         setMessages(data);
 
-        // 1.5️⃣ Fetch session details
-        const { data: sessionInfo } = await axios.get<any>(
-          `/sessions/${sessionId}`,
-        );
+        // 2️⃣ Load session info
+        const { data: sessionInfo } = await axios.get(`/sessions/${sessionId}`);
 
         if (isMounted && sessionInfo) {
-          const currentId = currentUserIdRef.current?.toLowerCase();
+          const currentId = user?.id?.toLowerCase();
 
-          const assistantId = (
-            sessionInfo.assistantId || sessionInfo.AssistantId
-          )?.toLowerCase();
-          const assistantName =
-            sessionInfo.assistantName ||
-            sessionInfo.AssistantName ||
-            "Assistant";
+          const assistantId = sessionInfo.assistantId?.toLowerCase();
+          const assistantName = sessionInfo.assistantName || "Assistant";
 
-          const clientId = (
-            sessionInfo.clientId || sessionInfo.ClientId
-          )?.toLowerCase();
-          const clientName =
-            sessionInfo.clientName || sessionInfo.ClientName || "Client";
+          const clientId = sessionInfo.clientId?.toLowerCase();
+          const clientName = sessionInfo.clientName || "Client";
 
           const isAssistant = assistantId === currentId;
 
@@ -95,174 +59,93 @@ export const useSessionChat = (sessionId: string) => {
             : { id: assistantId, name: assistantName };
 
           setOtherParticipant(participant);
+
+          if (sessionInfo.status?.toLowerCase() === "completed") {
+            setSessionStatus("completed");
+          }
         }
 
-        // 2️⃣ Create connection
-        const connection = new signalR.HubConnectionBuilder()
-          .withUrl(`${process.env.NEXT_PUBLIC_SIGNALR_URL}/hubs/session`, {
-            accessTokenFactory: () => getAccessToken() ?? "",
-          })
-          .withAutomaticReconnect()
-          .build();
+        // 3️⃣ Connect SignalR
+        const connection = await connect();
+        if (!connection) return;
 
-        connectionRef.current = connection;
-
-        // 🔁 Reconnect Handling
-        connection.onreconnecting(() => {
-          setIsConnected(false);
+        connection.on("InitialOnlineUsers", (users: string[]) => {
+          setInitialUsers(users, user?.id);
         });
 
-        connection.onreconnected(async () => {
-          if (!isMounted) return;
+        connection.on("UserOnline", userOnline);
 
-          setIsConnected(true);
+        connection.on("UserOffline", userOffline);
 
-          if (connection.state === signalR.HubConnectionState.Connected) {
-            await connection.invoke("JoinSession", sessionId);
+        connection.on("ReceiveMessage", (message) => {
+          addMessage(message);
+
+          if (message.senderId !== user?.id) {
+            connection.invoke("MarkAsRead", sessionId);
           }
         });
 
-        connection.onclose(() => {
-          setIsConnected(false);
+        connection.on("MessagesRead", (sessionIdFromServer: string, userId: string) => {
+          if (sessionIdFromServer !== sessionId) return;
+          if (userId === user?.id) return;
+
+          markMessagesRead(user?.id ?? "");
         });
 
-        // 📩 LISTENERS
-
-        connection.on("InitialOnlineUsers", (users: string[]) => {
-          const filteredUsers = users
-            .map((id) => id.toLowerCase())
-            .filter((id) => id !== currentUserIdRef.current?.toLowerCase());
-
-          setOnlineUsers(filteredUsers);
-        });
-
-        connection.on("UserOnline", (userId: string) => {
-          const normalizedId = userId.toLowerCase();
-
-          setOnlineUsers((prev) =>
-            prev.includes(normalizedId) ? prev : [...prev, normalizedId],
-          );
-        });
-
-        connection.on("UserOffline", (userId: string) => {
-          const normalizedId = userId.toLowerCase();
-
-          setOnlineUsers((prev) => prev.filter((id) => id !== normalizedId));
-        });
-
-        connection.on("ReceiveMessage", (message: SessionMessage) => {
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === message.id)) return prev;
-
-            return [...prev, message];
-          });
-
-          if (message.senderId !== currentUserIdRef.current) {
-            safeInvoke("MarkAsRead", sessionId);
+        connection.on("SessionCompleted", (completedSessionId: string) => {
+          if (completedSessionId === sessionId) {
+            setSessionStatus("completed");
           }
         });
 
         connection.on("UserTyping", (userId: string) => {
-          if (userId !== currentUserIdRef.current) {
-            setIsTyping(true);
+          if (userId === user?.id) return;
 
-            setTimeout(() => {
-              setIsTyping(false);
-            }, 2500);
+          setIsTyping(true);
+
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
           }
+
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsTyping(false);
+          }, 2500);
         });
-
-        connection.on(
-          "MessagesRead",
-          (sessionIdFromServer: string, userId: string) => {
-            if (sessionIdFromServer !== sessionId) return;
-
-            if (userId === currentUserIdRef.current) return;
-
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.senderId === currentUserIdRef.current && !m.readAt
-                  ? {
-                      ...m,
-                      readAt: new Date().toISOString(),
-                    }
-                  : m,
-              ),
-            );
-          },
-        );
-
-        // 🚀 START CONNECTION
-        await connection.start();
-
-        if (!isMounted) return;
-
-        setIsConnected(true);
 
         await connection.invoke("JoinSession", sessionId);
 
         setTimeout(() => {
-          safeInvoke("MarkAsRead", sessionId);
+          connection.invoke("MarkAsRead", sessionId);
         }, 100);
       } catch (error) {
-        console.error("SignalR init error:", error);
+        console.error("Chat init error:", error);
       }
     };
 
     init();
 
-    // 🧹 CLEANUP
     return () => {
       isMounted = false;
-
-      const connection = connectionRef.current;
-
-      if (connection) {
-        if (connection.state === signalR.HubConnectionState.Connected) {
-          connection.invoke("LeaveSession", sessionId).catch(() => {});
-        }
-
-        connection.stop().catch(() => {});
-        connectionRef.current = null;
-      }
-
-      setIsConnected(false);
-      setOnlineUsers([]);
+      disconnect();
     };
   }, [sessionId]);
 
-  // ✉️ Send Message
   const sendMessage = async (content: string) => {
+    if (sessionStatus === "completed") return;
+
     const connection = connectionRef.current;
     if (!connection) return;
-
-    if (connection.state !== signalR.HubConnectionState.Connected) return;
 
     await connection.invoke("SendMessage", sessionId, content);
   };
 
-  // ⌨️ Send Typing
   const sendTyping = () => {
+    if (sessionStatus === "completed") return;
+
     const connection = connectionRef.current;
     if (!connection) return;
-
-    if (connection.state !== signalR.HubConnectionState.Connected) return;
-
-    if (typingTimeoutRef.current) return;
 
     connection.invoke("Typing", sessionId);
-
-    typingTimeoutRef.current = setTimeout(() => {
-      typingTimeoutRef.current = null;
-    }, 2000);
-  };
-
-  const disconnect = async () => {
-    const connection = connectionRef.current;
-    if (!connection) return;
-
-    await connection.stop();
-    connectionRef.current = null;
   };
 
   return {
@@ -273,6 +156,6 @@ export const useSessionChat = (sessionId: string) => {
     isTyping,
     onlineUsers,
     otherParticipant,
-    disconnect,
+    sessionStatus,
   };
 };

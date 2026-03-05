@@ -1,13 +1,16 @@
 ﻿using AssistMate.Application.Common.Security;
 using AssistMate.Application.Sessions.Commands.AcceptSession;
+using AssistMate.Application.Sessions.Commands.CompleteSession;
 using AssistMate.Application.Sessions.Commands.CreateSession;
 using AssistMate.Application.Sessions.Commands.RejectSession;
 using AssistMate.Application.Sessions.GetMySessions;
 using AssistMate.Application.Sessions.GetSessionDetails;
 using AssistMate.Application.Sessions.GetSessionMessages;
+using AssistMate.Infrastructure.Realtime;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace AssistMate.Api.Controllers
 {
@@ -17,10 +20,12 @@ namespace AssistMate.Api.Controllers
     public class SessionsController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IHubContext<SessionHub> _hubContext;
 
-        public SessionsController(IMediator mediator)
+        public SessionsController(IMediator mediator, IHubContext<SessionHub> hubContext)
         {
             _mediator = mediator;
+            _hubContext = hubContext;
         }
 
         [HttpPost]
@@ -83,6 +88,20 @@ namespace AssistMate.Api.Controllers
             var result = await _mediator.Send(query, cancellationToken);
 
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("{id:guid}/complete")]
+        public async Task<IActionResult> CompleteSession(Guid id, CancellationToken cancellationToken)
+        {
+            var command = new CompleteSessionCommand(id);
+            await _mediator.Send(command, cancellationToken);
+
+            await _hubContext.Clients
+                .Group($"session-{id}")
+                .SendAsync("SessionCompleted", id);
+
+            return NoContent();
         }
     }
 }
