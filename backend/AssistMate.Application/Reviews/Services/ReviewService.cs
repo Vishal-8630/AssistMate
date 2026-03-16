@@ -64,9 +64,26 @@ namespace AssistMate.Application.Reviews.Services
         public async Task<ReviewDto?> GetReviewForSessionAsync(Guid userId, Guid sessionId)
         {
             var review = await _dbContext.Reviews
+                .Include(r => r.Reviewer)
                 .FirstOrDefaultAsync(r => r.SessionId == sessionId && r.ReviewerId == userId);
 
             return review?.ToReviewDto();
+        }
+
+        public async Task<AssistantReviewDto> GetAssistantReviewAsync(Guid assistantId)
+        {
+            var reviews = await _dbContext.Reviews
+                .Where(r => r.RevieweeId == assistantId)
+                .OrderByDescending(r => r.CreatedAt)
+                .Include(r => r.Reviewer)
+                .ToListAsync();
+
+            var total = reviews.Count;
+            var avg = total == 0
+                ? 0
+                : reviews.Average(r => r.Rating);
+
+            return new AssistantReviewDto(avg, total, [.. reviews.Select(r => r.ToReviewDto())]);
         }
     }
 }

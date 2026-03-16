@@ -40,26 +40,35 @@ export const ChatWindow = ({ sessionId }: Props) => {
       <ChatMessages
         messages={chat.messages}
         isTyping={chat.isTyping}
+        isLoading={chat.isMessagesLoading}
         user={user}
         otherParticipant={chat.otherParticipant}
+        onReply={chat.setReplyingTo}
+        onReaction={chat.sendReaction}
       />
 
       {chat.sessionStatus === "completed" && (
-        <div className="p-4 border-t bg-white flex justify-center">
-
-          <button
-            onClick={handleOpenReview}
-            disabled={!!existingReview || reviewLoading}
-            className={`px-4 py-2 rounded-lg text-white transition
-              ${
-                existingReview
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
-          >
-            {existingReview ? "Review Submitted" : "Leave Review"}
-          </button>
-
+        <div className="bg-gradient-to-r from-emerald-50 to-indigo-50 border-b border-indigo-100 p-3 shadow-inner z-10">
+          <div className="flex justify-center animate-in slide-in-from-top-2 fade-in duration-500">
+            <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-6 py-2.5 rounded-full shadow-md border border-indigo-100">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-sm font-semibold text-slate-700">Session Complete</span>
+              </div>
+              <div className="w-px h-5 bg-slate-200" />
+              <button
+                onClick={handleOpenReview}
+                disabled={!!existingReview || reviewLoading}
+                className={`text-sm font-bold uppercase tracking-wider transition-colors
+                  ${existingReview
+                    ? "text-slate-400 cursor-not-allowed"
+                    : "text-indigo-600 hover:text-indigo-700 hover:scale-105 active:scale-95"
+                  }`}
+              >
+                {existingReview ? "Review Submitted" : "Leave Review →"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -68,6 +77,8 @@ export const ChatWindow = ({ sessionId }: Props) => {
         sendTyping={chat.sendTyping}
         isConnected={chat.isConnected}
         sessionStatus={chat.sessionStatus}
+        replyingTo={chat.replyingTo}
+        onCancelReply={() => chat.setReplyingTo(null)}
       />
 
       <ReviewModal

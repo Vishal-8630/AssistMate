@@ -1,10 +1,10 @@
 "use client";
 
+import { ReviewDto } from "@/features/review/types";
 import { Star } from "lucide-react";
-import { AssistantReview } from "../types";
 
 interface Props {
-  review: AssistantReview;
+  review: ReviewDto;
 }
 
 export function ReviewCard({ review }: Props) {
@@ -27,24 +27,30 @@ export function ReviewCard({ review }: Props) {
             <h4 className="font-bold text-slate-900">
               {review.reviewerName}
             </h4>
+
             <span className="text-sm text-slate-400">
               {formattedDate}
             </span>
           </div>
 
+          {/* Rating */}
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`w-3.5 h-3.5 ${i < review.rating
+                className={`w-3.5 h-3.5 ${
+                  i < review.rating
                     ? "text-amber-400 fill-amber-400"
                     : "text-slate-200"
-                  }`}
+                }`}
               />
             ))}
           </div>
 
-          <p className="text-slate-600">{review.comment}</p>
+          {/* Comment */}
+          {review.comment && (
+            <p className="text-slate-600">{review.comment}</p>
+          )}
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ namespace AssistMate.Application.Common.Mappings
                 review.SessionId,
                 review.ReviewerId,
                 review.RevieweeId,
+                $"{review.Reviewer.FirstName} {review.Reviewer.LastName}",
                 review.Rating,
                 review.Comment,
                 review.CreatedAt

@@ -9,7 +9,14 @@ export interface ReviewDto {
     sessionId: string,
     reviewerId: string,
     revieweeId: string,
+    reviewerName: string,
     rating: number,
     comment?: string,
     createdAt: string
+}
+
+export interface AssistantReviewDto {
+    averageRating: number
+    totalReviews: number
+    reviews: ReviewDto[]
 }

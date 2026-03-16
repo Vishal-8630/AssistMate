@@ -1,4 +1,4 @@
-import { Send, Smile, Paperclip, Mic, ShieldCheck } from "lucide-react";
+import { Send, Smile, Paperclip, Mic, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -7,6 +7,8 @@ export const ChatInput = ({
   sendTyping,
   isConnected,
   sessionStatus,
+  replyingTo,
+  onCancelReply,
 }: any) => {
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -41,76 +43,95 @@ export const ChatInput = ({
             e.preventDefault();
             handleSend();
           }}
-          className="relative group"
+          className="relative group flex flex-col gap-2"
         >
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
-            <button
-              type="button"
-              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-            >
-              <Paperclip className="w-5 h-5" />
-            </button>
-          </div>
-
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => handleChange(e.target.value)}
-            disabled={!isConnected}
-            placeholder={
-              isConnected
-                ? "Write a message..."
-                : "Connecting to secure server..."
-            }
-            className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl pl-14 pr-28 py-4 text-sm 
-                       focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 
-                       transition-all shadow-inner placeholder:text-slate-400"
-          />
-
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-            <div className="relative">
-              {showEmojiPicker && (
-                <div className="absolute bottom-16 right-0 bg-white border border-slate-100 rounded-2xl shadow-2xl p-3 grid grid-cols-5 gap-2 z-50 min-w-[240px] animate-in slide-in-from-bottom-2 duration-200">
-                  {commonEmojis.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => addEmoji(emoji)}
-                      className="text-2xl p-2 hover:bg-slate-50 rounded-xl transition-all hover:scale-125"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
+          {replyingTo && (
+            <div className="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-2xl animate-in slide-in-from-bottom-2 duration-300 relative mx-1 mt-1 shadow-sm">
+              <div className="w-1 h-8 bg-indigo-400 rounded-full" />
+              <div className="flex-1 overflow-hidden">
+                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-0.5">Replying to message</p>
+                <p className="text-xs text-slate-600 truncate">{replyingTo.content}</p>
+              </div>
               <button
                 type="button"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className={cn(
-                  "p-2 rounded-xl transition-all",
-                  showEmojiPicker
-                    ? "text-amber-500 bg-amber-50"
-                    : "text-slate-400 hover:text-amber-500 hover:bg-amber-50",
-                )}
+                onClick={onCancelReply}
+                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors mr-1"
               >
-                <Smile className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <button
-              type="button"
-              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-            >
-              <Mic className="w-5 h-5" />
-            </button>
-            <button
-              type="submit"
-              disabled={!isConnected || !input.trim()}
-              className="w-11 h-11 bg-indigo-600 text-white rounded-xl 
-                         flex items-center justify-center hover:bg-indigo-700 disabled:opacity-30 
-                         disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200 active:scale-95 ml-1"
-            >
-              <Send className="w-5 h-5 fill-current" />
-            </button>
+          )}
+
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+              <button
+                type="button"
+                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+            </div>
+
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => handleChange(e.target.value)}
+              disabled={!isConnected}
+              placeholder={
+                isConnected
+                  ? "Write a message..."
+                  : "Connecting to secure server..."
+              }
+              className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl pl-14 pr-28 py-4 text-sm 
+                         focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 
+                         transition-all shadow-inner placeholder:text-slate-400"
+            />
+
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              <div className="relative">
+                {showEmojiPicker && (
+                  <div className="absolute bottom-16 right-0 bg-white border border-slate-100 rounded-2xl shadow-2xl p-3 grid grid-cols-5 gap-2 z-50 min-w-[240px] animate-in slide-in-from-bottom-2 duration-200">
+                    {commonEmojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => addEmoji(emoji)}
+                        className="text-2xl p-2 hover:bg-slate-50 rounded-xl transition-all hover:scale-125"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className={cn(
+                    "p-2 rounded-xl transition-all",
+                    showEmojiPicker
+                      ? "text-amber-500 bg-amber-50"
+                      : "text-slate-400 hover:text-amber-500 hover:bg-amber-50",
+                  )}
+                >
+                  <Smile className="w-5 h-5" />
+                </button>
+              </div>
+              <button
+                type="button"
+                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <button
+                type="submit"
+                disabled={!isConnected || !input.trim()}
+                className="w-11 h-11 bg-indigo-600 text-white rounded-xl 
+                           flex items-center justify-center hover:bg-indigo-700 disabled:opacity-30 
+                           disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200 active:scale-95 ml-1"
+              >
+                <Send className="w-5 h-5 fill-current" />
+              </button>
+            </div>
           </div>
         </form>
       ) : (

@@ -4,6 +4,7 @@ import { useAuthStatus } from "@/features/auth/hooks/use-auth-status";
 import { useSignalRConnection } from "./useSignalRConnection";
 import { useChatMessages } from "./useChatMessages";
 import { useChatPresence } from "./useChatPresence";
+import { SessionMessage } from "../types";
 
 export const useSessionChat = (sessionId: string) => {
   const { user } = useAuthStatus();
@@ -18,6 +19,7 @@ export const useSessionChat = (sessionId: string) => {
     useChatPresence();
 
   const [isTyping, setIsTyping] = useState(false);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(true);
   const [sessionStatus, setSessionStatus] =
     useState<"active" | "completed">("active");
 
@@ -25,6 +27,8 @@ export const useSessionChat = (sessionId: string) => {
     id: string;
     name: string;
   } | null>(null);
+
+  const [replyingTo, setReplyingTo] = useState<SessionMessage | null>(null);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,6 +43,7 @@ export const useSessionChat = (sessionId: string) => {
         const { data } = await axios.get(`/sessions/${sessionId}/messages`);
         if (!isMounted) return;
         setMessages(data);
+        setIsMessagesLoading(false);
 
         // 2️⃣ Load session info
         const { data: sessionInfo } = await axios.get(`/sessions/${sessionId}`);
@@ -85,6 +90,12 @@ export const useSessionChat = (sessionId: string) => {
           }
         });
 
+        connection.on("ReceiveReaction", (messageId: string, reactions: any[]) => {
+          setMessages(prev => prev.map(m =>
+            m.id === messageId ? { ...m, reactions } : m
+          ));
+        });
+
         connection.on("MessagesRead", (sessionIdFromServer: string, userId: string) => {
           if (sessionIdFromServer !== sessionId) return;
           if (userId === user?.id) return;
@@ -119,6 +130,7 @@ export const useSessionChat = (sessionId: string) => {
         }, 100);
       } catch (error) {
         console.error("Chat init error:", error);
+        setIsMessagesLoading(false);
       }
     };
 
@@ -136,7 +148,15 @@ export const useSessionChat = (sessionId: string) => {
     const connection = connectionRef.current;
     if (!connection) return;
 
-    await connection.invoke("SendMessage", sessionId, content);
+    await connection.invoke("SendMessage", sessionId, content, replyingTo?.id || null);
+    setReplyingTo(null);
+  };
+
+  const sendReaction = async (messageId: string, emoji: string) => {
+    const connection = connectionRef.current;
+    if (!connection) return;
+
+    await connection.invoke("SendReaction", sessionId, messageId, emoji);
   };
 
   const sendTyping = () => {
@@ -150,12 +170,16 @@ export const useSessionChat = (sessionId: string) => {
 
   return {
     messages,
+    isMessagesLoading,
     sendMessage,
+    sendReaction,
     sendTyping,
     isConnected,
     isTyping,
     onlineUsers,
     otherParticipant,
     sessionStatus,
+    replyingTo,
+    setReplyingTo
   };
 };

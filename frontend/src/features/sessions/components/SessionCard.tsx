@@ -46,6 +46,7 @@ function StatusBadge({ status }: { status: SessionDto["status"] }) {
 // ─── Actions ─────────────────────────────────────────────────
 
 function AssistantActions({ session }: { session: SessionDto }) {
+  const router = useRouter();
   const { mutate: accept, isPending: accepting } = useAcceptSession();
   const { mutate: reject, isPending: rejecting } = useRejectSession();
 
@@ -80,8 +81,6 @@ function AssistantActions({ session }: { session: SessionDto }) {
   }
 
   if (session.status === "Active") {
-    const router = useRouter();
-
     return (
       <button
         onClick={() => router.push(`/sessions/${session.sessionId}`)}
@@ -94,10 +93,26 @@ function AssistantActions({ session }: { session: SessionDto }) {
     );
   }
 
+  if (session.status === "Completed") {
+    return (
+      <button
+        onClick={() => router.push(`/sessions/${session.sessionId}`)}
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
+          border border-indigo-200 text-indigo-600 bg-indigo-50
+          hover:bg-indigo-100 transition-all"
+      >
+        <MessageSquare className="w-4 h-4" />
+        View Chat
+      </button>
+    );
+  }
+
   return null;
 }
 
 function ClientActions({ session }: { session: SessionDto }) {
+  const router = useRouter();
+
   if (session.status === "Requested") {
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600">
@@ -108,8 +123,6 @@ function ClientActions({ session }: { session: SessionDto }) {
   }
 
   if (session.status === "Active") {
-    const router = useRouter();
-
     return (
       <button
         onClick={() => router.push(`/sessions/${session.sessionId}`)}
@@ -133,10 +146,15 @@ function ClientActions({ session }: { session: SessionDto }) {
 
   if (session.status === "Completed") {
     return (
-      <span className="text-sm font-semibold text-blue-600 flex items-center gap-1.5">
-        <CheckCircle2 className="w-4 h-4" />
-        Completed
-      </span>
+      <button
+        onClick={() => router.push(`/sessions/${session.sessionId}`)}
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
+          border border-indigo-200 text-indigo-600 bg-indigo-50
+          hover:bg-indigo-100 transition-all"
+      >
+        <MessageSquare className="w-4 h-4" />
+        View Chat
+      </button>
     );
   }
 

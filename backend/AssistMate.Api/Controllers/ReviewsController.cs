@@ -36,5 +36,12 @@ namespace AssistMate.Api.Controllers
 
             return Ok(review);
         }
+
+        [HttpGet("assistant/{assistantId}")]
+        public async Task<IActionResult> GetAssistantReviews(Guid assistantId)
+        {
+            var result = await _reviewService.GetAssistantReviewAsync(assistantId);
+            return Ok(result);
+        }
     }
 }

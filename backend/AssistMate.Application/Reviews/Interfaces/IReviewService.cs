@@ -7,5 +7,6 @@ namespace AssistMate.Application.Reviews.Interfaces
     {
         Task<ReviewDto> CreateReviewAsync(Guid userId, CreateReviewRequest request);
         Task<ReviewDto?> GetReviewForSessionAsync(Guid userId, Guid sessionId);
+        Task<AssistantReviewDto> GetAssistantReviewAsync(Guid assistantId);
     }
 }
