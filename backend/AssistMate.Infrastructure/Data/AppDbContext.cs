@@ -18,6 +18,7 @@ namespace AssistMate.Infrastructure.Data
         public DbSet<AssistantService> AssistantServices => Set<AssistantService>();
         public DbSet<Session> Sessions => Set<Session>();
         public DbSet<SessionMessage> SessionMessages => Set<SessionMessage>();
+        public DbSet<Review> Reviews => Set<Review>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

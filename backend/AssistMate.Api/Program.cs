@@ -18,6 +18,8 @@ using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.Services;
 using System.Security.Claims;
 using AssistMate.Infrastructure.Realtime;
+using AssistMate.Application.Reviews.Interfaces;
+using AssistMate.Application.Reviews.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -127,6 +129,7 @@ builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
 builder.Services.AddScoped<ISessionAuthorizationService, SessionAuthorizationService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var app = builder.Build();
 
