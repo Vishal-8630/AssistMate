@@ -5,6 +5,7 @@ import { useSignalRConnection } from "./useSignalRConnection";
 import { useChatMessages } from "./useChatMessages";
 import { useChatPresence } from "./useChatPresence";
 import { SessionMessage } from "../types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useSessionChat = (sessionId: string) => {
   const { user } = useAuthStatus();
@@ -20,8 +21,9 @@ export const useSessionChat = (sessionId: string) => {
 
   const [isTyping, setIsTyping] = useState(false);
   const [isMessagesLoading, setIsMessagesLoading] = useState(true);
-  const [sessionStatus, setSessionStatus] =
-    useState<"active" | "completed">("active");
+  const [sessionStatus, setSessionStatus] = useState<"active" | "completed">(
+    "active",
+  );
 
   const [otherParticipant, setOtherParticipant] = useState<{
     id: string;
@@ -31,6 +33,8 @@ export const useSessionChat = (sessionId: string) => {
   const [replyingTo, setReplyingTo] = useState<SessionMessage | null>(null);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!sessionId) return;
@@ -85,23 +89,36 @@ export const useSessionChat = (sessionId: string) => {
         connection.on("ReceiveMessage", (message) => {
           addMessage(message);
 
+          queryClient.invalidateQueries({
+            queryKey: ["sessions", "unread-counts"],
+          });
+
           if (message.senderId !== user?.id) {
             connection.invoke("MarkAsRead", sessionId);
           }
         });
 
-        connection.on("ReceiveReaction", (messageId: string, reactions: any[]) => {
-          setMessages(prev => prev.map(m =>
-            m.id === messageId ? { ...m, reactions } : m
-          ));
-        });
+        connection.on(
+          "ReceiveReaction",
+          (messageId: string, reactions: any[]) => {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === messageId ? { ...m, reactions } : m)),
+            );
+          },
+        );
 
-        connection.on("MessagesRead", (sessionIdFromServer: string, userId: string) => {
-          if (sessionIdFromServer !== sessionId) return;
-          if (userId === user?.id) return;
+        connection.on(
+          "MessagesRead",
+          (sessionIdFromServer: string, userId: string) => {
+            if (sessionIdFromServer !== sessionId) return;
+            if (userId === user?.id) return;
 
-          markMessagesRead(user?.id ?? "");
-        });
+            markMessagesRead(user?.id ?? "");
+            queryClient.invalidateQueries({
+              queryKey: ["sessions", "unread-counts"],
+            });
+          },
+        );
 
         connection.on("SessionCompleted", (completedSessionId: string) => {
           if (completedSessionId === sessionId) {
@@ -127,6 +144,10 @@ export const useSessionChat = (sessionId: string) => {
 
         setTimeout(() => {
           connection.invoke("MarkAsRead", sessionId);
+
+          queryClient.invalidateQueries({
+            queryKey: ["sessions", "unread-counts"],
+          });
         }, 100);
       } catch (error) {
         console.error("Chat init error:", error);
@@ -148,7 +169,12 @@ export const useSessionChat = (sessionId: string) => {
     const connection = connectionRef.current;
     if (!connection) return;
 
-    await connection.invoke("SendMessage", sessionId, content, replyingTo?.id || null);
+    await connection.invoke(
+      "SendMessage",
+      sessionId,
+      content,
+      replyingTo?.id || null,
+    );
     setReplyingTo(null);
   };
 
@@ -180,6 +206,6 @@ export const useSessionChat = (sessionId: string) => {
     otherParticipant,
     sessionStatus,
     replyingTo,
-    setReplyingTo
+    setReplyingTo,
   };
 };

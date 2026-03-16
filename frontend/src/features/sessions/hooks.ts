@@ -3,6 +3,7 @@ import {
   acceptSession,
   createSession,
   getMySessions,
+  getUnreadCounts,
   rejectSession,
 } from "./api";
 import { CreateSessionRequest } from "./types";
@@ -20,7 +21,7 @@ export const useCreateSession = () => {
     mutationFn: (payload: CreateSessionRequest) => createSession(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-sessions"] });
-    }
+    },
   });
 };
 
@@ -43,5 +44,13 @@ export const useRejectSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-sessions"] });
     },
+  });
+};
+
+export const useUnreadCounts = () => {
+  return useQuery({
+    queryKey: ["sessions", "unread-counts"],
+    queryFn: getUnreadCounts,
+    refetchInterval: 10000,
   });
 };

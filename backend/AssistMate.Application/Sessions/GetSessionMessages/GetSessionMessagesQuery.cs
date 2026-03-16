@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AssistMate.Application.Sessions.DTOs;
+using MediatR;
 
 namespace AssistMate.Application.Sessions.GetSessionMessages
 {

@@ -1,6 +1,9 @@
+"use client";
+
 import { AlertCircle, Inbox } from "lucide-react";
 import { SessionCard } from "./SessionCard";
 import { SessionDto } from "../types";
+import { useUnreadCounts } from "../hooks";
 
 interface Props {
   isLoading: boolean;
@@ -19,11 +22,22 @@ export function JobsContent({
   refetch,
   viewMode,
 }: Props) {
+  const { data: unreadCounts } = useUnreadCounts();
+
+  const unreadMap =
+    unreadCounts?.reduce<Record<string, number>>((acc, item) => {
+      acc[item.sessionId] = item.unreadCount;
+      return acc;
+    }, {}) ?? {};
+
   if (isLoading) {
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-24 bg-white rounded-2xl ring-1 ring-black/5 animate-pulse" />
+          <div
+            key={i}
+            className="h-24 bg-white rounded-2xl ring-1 ring-black/5 animate-pulse"
+          />
         ))}
       </div>
     );
@@ -65,6 +79,7 @@ export function JobsContent({
           key={session.sessionId}
           session={session}
           viewMode={viewMode}
+          unreadCount={unreadMap[session.sessionId] ?? 0}
         />
       ))}
     </div>

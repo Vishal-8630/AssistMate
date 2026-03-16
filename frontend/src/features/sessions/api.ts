@@ -5,6 +5,7 @@ import {
   CreateSessionResponse,
   GetMySessionsResponse,
   RejectSessionResponse,
+  UnreadCountsDto,
 } from "./types";
 
 export const createSession = async (
@@ -34,5 +35,10 @@ export const rejectSession = async (
 
 export const getMySessions = async (): Promise<GetMySessionsResponse> => {
   const { data } = await api.get<GetMySessionsResponse>("/sessions/my");
+  return data;
+};
+
+export const getUnreadCounts = async (): Promise<UnreadCountsDto[]> => {
+  const { data } = await api.get<UnreadCountsDto[]>("/sessions/unread-counts");
   return data;
 };

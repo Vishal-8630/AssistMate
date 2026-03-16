@@ -35,3 +35,8 @@ export interface SessionDto {
 }
 
 export type GetMySessionsResponse = SessionDto[];
+
+export interface UnreadCountsDto {
+    sessionId: string,
+    unreadCount: number
+}

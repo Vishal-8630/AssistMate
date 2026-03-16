@@ -1,5 +1,6 @@
 ﻿using AssistMate.Application.Common.Exceptions;
 using AssistMate.Application.Common.Interfaces;
+using AssistMate.Application.Sessions.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
