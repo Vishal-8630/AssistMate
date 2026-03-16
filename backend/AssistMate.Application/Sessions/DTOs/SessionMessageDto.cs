@@ -1,4 +1,6 @@
-﻿namespace AssistMate.Application.Sessions.GetSessionMessages
+﻿using AssistMate.Application.Sessions.GetSessionMessages;
+
+namespace AssistMate.Application.Sessions.DTOs
 {
     public record SessionMessageDto(
         Guid Id,
@@ -9,16 +11,5 @@
         Guid? ParentMessageId,
         ParentMessageDto? ParentMessage,
         IReadOnlyList<MessageReactionDto>? Reactions
-    );
-
-    public record ParentMessageDto(
-        Guid Id,
-        string Content,
-        Guid SenderId
-    );
-
-    public record MessageReactionDto(
-        Guid UserId,
-        string Emoji
     );
 }

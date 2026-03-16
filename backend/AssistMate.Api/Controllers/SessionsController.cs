@@ -3,9 +3,11 @@ using AssistMate.Application.Sessions.Commands.AcceptSession;
 using AssistMate.Application.Sessions.Commands.CompleteSession;
 using AssistMate.Application.Sessions.Commands.CreateSession;
 using AssistMate.Application.Sessions.Commands.RejectSession;
+using AssistMate.Application.Sessions.DTOs;
 using AssistMate.Application.Sessions.GetMySessions;
 using AssistMate.Application.Sessions.GetSessionDetails;
 using AssistMate.Application.Sessions.GetSessionMessages;
+using AssistMate.Application.Sessions.GetUnreadCounts;
 using AssistMate.Infrastructure.Realtime;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -102,6 +104,17 @@ namespace AssistMate.Api.Controllers
                 .SendAsync("SessionCompleted", id);
 
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("unread-counts")]
+        public async Task<ActionResult<List<UnreadCountDto>>> GetUnreadCounts(CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            var query = new GetUnreadCountsQuery(userId);
+            var result = await _mediator.Send(query, cancellationToken);
+
+            return Ok(result);
         }
     }
 }

@@ -45,7 +45,13 @@ function StatusBadge({ status }: { status: SessionDto["status"] }) {
 
 // ─── Actions ─────────────────────────────────────────────────
 
-function AssistantActions({ session }: { session: SessionDto }) {
+function AssistantActions({
+  session,
+  unreadCount,
+}: {
+  session: SessionDto;
+  unreadCount: number;
+}) {
   const router = useRouter();
   const { mutate: accept, isPending: accepting } = useAcceptSession();
   const { mutate: reject, isPending: rejecting } = useRejectSession();
@@ -84,11 +90,20 @@ function AssistantActions({ session }: { session: SessionDto }) {
     return (
       <button
         onClick={() => router.push(`/sessions/${session.sessionId}`)}
-        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
+        className="relative inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
           bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm"
       >
         <MessageSquare className="w-4 h-4" />
         Go to Chat
+        {unreadCount > 0 && (
+          <span
+            className="absolute -top-2 -right-3 min-w-[18px] h-[18px]
+              flex items-center justify-center rounded-full
+              bg-red-500 text-white text-[10px] font-bold px-1"
+          >
+            {unreadCount}
+          </span>
+        )}
       </button>
     );
   }
@@ -110,7 +125,13 @@ function AssistantActions({ session }: { session: SessionDto }) {
   return null;
 }
 
-function ClientActions({ session }: { session: SessionDto }) {
+function ClientActions({
+  session,
+  unreadCount,
+}: {
+  session: SessionDto;
+  unreadCount: number;
+}) {
   const router = useRouter();
 
   if (session.status === "Requested") {
@@ -126,11 +147,20 @@ function ClientActions({ session }: { session: SessionDto }) {
     return (
       <button
         onClick={() => router.push(`/sessions/${session.sessionId}`)}
-        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
+        className="relative inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold
           bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm"
       >
         <MessageSquare className="w-4 h-4" />
         Go to Chat
+        {unreadCount > 0 && (
+          <span
+            className="absolute -top-2 -right-3 min-w-[18px] h-[18px]
+              flex items-center justify-center rounded-full
+              bg-red-500 text-white text-[10px] font-bold px-1"
+          >
+            {unreadCount}
+          </span>
+        )}
       </button>
     );
   }
@@ -166,9 +196,14 @@ function ClientActions({ session }: { session: SessionDto }) {
 interface SessionCardProps {
   session: SessionDto;
   viewMode: "assistant" | "client";
+  unreadCount?: number;
 }
 
-export function SessionCard({ session, viewMode }: SessionCardProps) {
+export function SessionCard({
+  session,
+  viewMode,
+  unreadCount,
+}: SessionCardProps) {
   const meta = SESSION_META[session.status];
 
   return (
@@ -222,9 +257,9 @@ export function SessionCard({ session, viewMode }: SessionCardProps) {
         {/* Actions */}
         <div className="flex items-center gap-3 shrink-0">
           {viewMode === "assistant" ? (
-            <AssistantActions session={session} />
+            <AssistantActions session={session} unreadCount={unreadCount ?? 0} />
           ) : (
-            <ClientActions session={session} />
+            <ClientActions session={session} unreadCount={unreadCount ?? 0} />
           )}
 
           <button
