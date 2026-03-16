@@ -6,10 +6,10 @@ import { AssistantHero } from "@/features/assistant/components/AssistantHero";
 import { AssistantReviews } from "@/features/assistant/components/AssistantReviews";
 import { AssistantSidebar } from "@/features/assistant/components/AssistantSidebar";
 import { AssistantStats } from "@/features/assistant/components/AssistantStats";
-import { dummyReviews } from "@/features/assistant/data/dummyReviews";
 import { useAssistant } from "@/features/assistant/hooks";
 import { AssistantProfile } from "@/features/assistant/types";
 import { useAuthStatus } from "@/features/auth/hooks/use-auth-status";
+import { useAssistantReviews } from "@/features/review/hooks";
 import { useParams, useRouter } from "next/navigation";
 
 export default function AssistantProfilePage() {
@@ -19,6 +19,8 @@ export default function AssistantProfilePage() {
 
   const { data, isLoading } = useAssistant(id);
   const assistant = data as AssistantProfile;
+
+  const { data: reviewsData, isLoading: reviewsLoading } = useAssistantReviews(id);
 
   if (isLoading) return <Loader text="Loading Profile..." />;
 
@@ -41,8 +43,8 @@ export default function AssistantProfilePage() {
 
   // Realistic Dummy Data (to be replaced by API props)
   const meta = {
-    rating: 4.9,
-    totalReviews: 142,
+    rating: reviewsData?.averageRating ?? 0,
+    totalReviews: reviewsData?.totalReviews ?? 0,
     jobsCompleted: 218,
     successRate: "99%",
     responseTime: "Typically 15 minutes",
@@ -95,7 +97,7 @@ export default function AssistantProfilePage() {
               rating={meta.rating}
             />
 
-            <AssistantReviews reviews={dummyReviews} />
+            <AssistantReviews reviews={reviewsData?.reviews ?? []} isLoading={reviewsLoading}/>
           </div>
 
           {/* Right Column */}

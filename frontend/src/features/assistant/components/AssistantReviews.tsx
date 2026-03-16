@@ -1,14 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { AssistantReview } from "../types";
 import { ReviewCard } from "./ReviewCard";
+import { ReviewDto } from "@/features/review/types";
+import { Loader } from "@/components/ui/loader";
 
 interface Props {
-  reviews: AssistantReview[];
+  reviews: ReviewDto[];
+  isLoading?: boolean;
 }
 
-export function AssistantReviews({ reviews }: Props) {
+export function AssistantReviews({ reviews, isLoading }: Props) {
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-3xl shadow-sm ring-1 ring-black/5 p-8">
+        <Loader text="Loading reviews..." />
+      </div>
+    );
+  }
+
   if (!reviews || reviews.length === 0) {
     return (
       <div className="bg-white rounded-3xl shadow-sm ring-1 ring-black/5 p-8">
@@ -23,9 +33,7 @@ export function AssistantReviews({ reviews }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900">
-          Recent Reviews
-        </h2>
+        <h2 className="text-2xl font-bold text-slate-900">Recent Reviews</h2>
 
         <Button
           variant="ghost"

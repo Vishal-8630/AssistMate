@@ -86,7 +86,7 @@ namespace AssistMate.Infrastructure.Realtime
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
         }
 
-        public async Task SendMessage(Guid sessionId, string content)
+        public async Task SendMessage(Guid sessionId, string content, Guid? parentMessageId = null)
         {
             var userIdString = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -123,14 +123,26 @@ namespace AssistMate.Infrastructure.Realtime
             if (session.Status != SessionStatus.Active)
                 throw new HubException("Session is not active");
 
-            // Need to refactor this code into Application project
+            // Validate parent message if provided
+            SessionMessage? parentMessage = null;
+            if (parentMessageId.HasValue)
+            {
+                parentMessage = await _dbContext.SessionMessages
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.Id == parentMessageId.Value && m.SessionId == sessionId);
+                
+                if (parentMessage == null)
+                    throw new HubException("Parent message not found");
+            }
+
             var message = new SessionMessage
             {
                 Id = Guid.NewGuid(),
                 SessionId = sessionId,
                 SenderId = userId,
                 Content = content.Trim(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ParentMessageId = parentMessageId
             };
 
             _dbContext.SessionMessages.Add(message);
@@ -144,7 +156,13 @@ namespace AssistMate.Infrastructure.Realtime
                 message.SessionId,
                 message.SenderId,
                 message.Content,
-                message.CreatedAt
+                message.CreatedAt,
+                message.ParentMessageId,
+                ParentMessage = parentMessage != null ? new {
+                    parentMessage.Id,
+                    parentMessage.Content,
+                    parentMessage.SenderId
+                } : null
             });
         }
 
@@ -159,6 +177,60 @@ namespace AssistMate.Infrastructure.Realtime
 
             await Clients.OthersInGroup(groupName)
                 .SendAsync("UserTyping", userId);
+        }
+
+        public async Task SendReaction(Guid sessionId, Guid messageId, string emoji)
+        {
+            var userIdString = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                throw new HubException("Unauthorized");
+
+            var isParticipant = await _sessionAuth.IsUserParticipantAsync(sessionId, userId);
+            if (!isParticipant) return;
+
+            var message = await _dbContext.SessionMessages
+                .FirstOrDefaultAsync(m => m.Id == messageId && m.SessionId == sessionId);
+
+            if (message == null)
+                throw new HubException("Message not found");
+
+            var existingReaction = await _dbContext.MessageReactions
+                .FirstOrDefaultAsync(r => r.MessageId == messageId && r.UserId == userId);
+
+            if (existingReaction != null)
+            {
+                if (existingReaction.Emoji == emoji)
+                {
+                    _dbContext.MessageReactions.Remove(existingReaction);
+                }
+                else
+                {
+                    existingReaction.Emoji = emoji;
+                }
+            }
+            else
+            {
+                var reaction = new MessageReaction
+                {
+                    Id = Guid.NewGuid(),
+                    MessageId = messageId,
+                    UserId = userId,
+                    Emoji = emoji,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbContext.MessageReactions.Add(reaction);
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            var reactions = await _dbContext.MessageReactions
+                .Where(r => r.MessageId == messageId)
+                .Select(r => new { userId = r.UserId, emoji = r.Emoji })
+                .ToListAsync();
+
+            var groupName = GetSessionGroup(sessionId);
+            await Clients.Group(groupName).SendAsync("ReceiveReaction", messageId, reactions);
         }
 
         public async Task MarkAsRead(Guid sessionId)

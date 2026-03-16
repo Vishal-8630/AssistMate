@@ -3,6 +3,7 @@ using System;
 using AssistMate.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AssistMate.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316104715_AddReviews")]
+    partial class AddReviews
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,34 +38,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("AssistantServices", (string)null);
-                });
-
-            modelBuilder.Entity("AssistMate.Domain.Entities.MessageReaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Emoji")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("MessageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MessageReactions");
                 });
 
             modelBuilder.Entity("AssistMate.Domain.Entities.OtpVerification", b =>
@@ -270,9 +245,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("ParentMessageId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -283,8 +255,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentMessageId");
 
                     b.HasIndex("SenderId");
 
@@ -362,25 +332,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("AssistMate.Domain.Entities.MessageReaction", b =>
-                {
-                    b.HasOne("AssistMate.Domain.Entities.SessionMessage", "Message")
-                        .WithMany("Reactions")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AssistMate.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("AssistMate.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("AssistMate.Domain.Entities.User", "User")
@@ -448,10 +399,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("AssistMate.Domain.Entities.SessionMessage", b =>
                 {
-                    b.HasOne("AssistMate.Domain.Entities.SessionMessage", "ParentMessage")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentMessageId");
-
                     b.HasOne("AssistMate.Domain.Entities.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
@@ -464,8 +411,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ParentMessage");
-
                     b.Navigation("Sender");
 
                     b.Navigation("Session");
@@ -474,13 +419,6 @@ namespace AssistMate.Infrastructure.Data.Migrations
             modelBuilder.Entity("AssistMate.Domain.Entities.Service", b =>
                 {
                     b.Navigation("AssistantServices");
-                });
-
-            modelBuilder.Entity("AssistMate.Domain.Entities.SessionMessage", b =>
-                {
-                    b.Navigation("Reactions");
-
-                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("AssistMate.Domain.Entities.User", b =>

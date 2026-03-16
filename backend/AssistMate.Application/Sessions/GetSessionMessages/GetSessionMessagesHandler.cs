@@ -27,6 +27,8 @@ namespace AssistMate.Application.Sessions.GetSessionMessages
                 throw new AppException("Unauthorized access");
 
             return await _dbContext.SessionMessages
+                .Include(m => m.Reactions)
+                .Include(m => m.ParentMessage)
                 .Where(m => m.SessionId == request.SessionId)
                 .OrderBy(m => m.CreatedAt)
                 .Select(m => new SessionMessageDto(
@@ -34,7 +36,10 @@ namespace AssistMate.Application.Sessions.GetSessionMessages
                     m.SessionId,
                     m.SenderId,
                     m.Content,
-                    m.CreatedAt
+                    m.CreatedAt,
+                    m.ParentMessageId,
+                    m.ParentMessage != null ? new ParentMessageDto(m.ParentMessage.Id, m.ParentMessage.Content, m.ParentMessage.SenderId) : null,
+                    m.Reactions.Select(r => new MessageReactionDto(r.UserId, r.Emoji)).ToList()
                  ))
                 .ToListAsync(cancellationToken);
         }

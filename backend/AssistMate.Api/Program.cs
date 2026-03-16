@@ -18,12 +18,23 @@ using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.Services;
 using System.Security.Claims;
 using AssistMate.Infrastructure.Realtime;
+using AssistMate.Application.Reviews.Interfaces;
+using AssistMate.Application.Reviews.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
 builder.Services.AddSignalR();
 builder.Services.AddOpenApi();
 
@@ -42,15 +53,6 @@ builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(AssistMate.Application.AssemblyReference).Assembly);
 });
-
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter()
-        );
-    });
 
 // CORS
 builder.Services.AddCors(options =>
@@ -127,6 +129,7 @@ builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
 builder.Services.AddScoped<ISessionAuthorizationService, SessionAuthorizationService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var app = builder.Build();
 
