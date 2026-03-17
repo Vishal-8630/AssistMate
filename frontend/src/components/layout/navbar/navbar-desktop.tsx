@@ -9,6 +9,7 @@ import { UserRole } from "@/types/user";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LogOut, ChevronRight } from "lucide-react";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 export function NavbarDesktop() {
   const router = useRouter();
@@ -85,6 +86,8 @@ export function NavbarDesktop() {
           </>
         ) : (
           <div className="flex items-center gap-3">
+            <NotificationBell />
+            
             <div className="flex flex-col items-end mr-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
                 {user?.role}

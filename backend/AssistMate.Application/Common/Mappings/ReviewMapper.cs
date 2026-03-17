@@ -3,7 +3,7 @@ using AssistMate.Domain.Entities;
 
 namespace AssistMate.Application.Common.Mappings
 {
-    public static class ReviewMappings
+    public static class ReviewMapper
     {
         public static ReviewDto ToReviewDto(this Review review)
         {

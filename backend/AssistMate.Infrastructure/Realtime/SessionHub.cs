@@ -1,4 +1,6 @@
 ﻿using AssistMate.Application.Common.Interfaces;
+using AssistMate.Application.Notifications.DTOs;
+using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Domain.Entities;
 using AssistMate.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -15,12 +17,14 @@ namespace AssistMate.Infrastructure.Realtime
         private readonly IAppDbContext _dbContext;
         private readonly IPresenceTracker _presenceTracker;
         private readonly ISessionAuthorizationService _sessionAuth;
+        private readonly INotificationService _notificationService;
 
-        public SessionHub(IAppDbContext dbContext, IPresenceTracker presenceTracker, ISessionAuthorizationService sessionAuth)
+        public SessionHub(IAppDbContext dbContext, IPresenceTracker presenceTracker, ISessionAuthorizationService sessionAuth, INotificationService notificationService)
         {
             _dbContext = dbContext;
             _presenceTracker = presenceTracker;
             _sessionAuth = sessionAuth;
+            _notificationService = notificationService;
         }
 
         public override async Task OnConnectedAsync()
@@ -149,6 +153,17 @@ namespace AssistMate.Infrastructure.Realtime
             await _dbContext.SaveChangesAsync(Context.ConnectionAborted);
 
             var groupName = GetSessionGroup(sessionId);
+
+            var receiverId = session.ClientId == userId
+                ? session.AssistantId
+                : session.ClientId;
+
+            if (receiverId != userId)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    new CreateNotificationRequest(receiverId, "New Message", "You received a new message", NotificationType.NewMessage, sessionId)
+                );
+            }
 
             await Clients.Group(groupName).SendAsync("ReceiveMessage", new
             {

@@ -20,6 +20,7 @@ namespace AssistMate.Infrastructure.Data
         public DbSet<SessionMessage> SessionMessages => Set<SessionMessage>();
         public DbSet<MessageReaction> MessageReactions => Set<MessageReaction>();
         public DbSet<Review> Reviews => Set<Review>();
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

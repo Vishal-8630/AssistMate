@@ -40,7 +40,6 @@ export const ChatWindow = ({ sessionId }: Props) => {
       <ChatMessages
         messages={chat.messages}
         isTyping={chat.isTyping}
-        isLoading={chat.isMessagesLoading}
         user={user}
         otherParticipant={chat.otherParticipant}
         onReply={chat.setReplyingTo}

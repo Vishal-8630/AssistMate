@@ -3,21 +3,25 @@ import { ArrowDown, MessageSquareHeart } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { SessionMessage } from "../types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   messages: SessionMessage[];
   user: any;
   isTyping: boolean;
+  isLoading: boolean;
   otherParticipant: { id: string; name: string } | null;
   onReply: (msg: SessionMessage) => void;
   onReaction: (messageId: string, emoji: string) => void;
 }
 
-export const ChatMessages = ({ messages, user, isTyping, otherParticipant, onReply, onReaction }: Props) => {
+export const ChatMessages = ({ messages, user, isTyping, isLoading, otherParticipant, onReply, onReaction }: Props) => {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // ... (getDateLabel and scrollToBottom preserved)
 
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -106,7 +110,18 @@ export const ChatMessages = ({ messages, user, isTyping, otherParticipant, onRep
         </button>
       )}
 
-      {messages.length === 0 && (
+      {isLoading && (
+        <div className="space-y-6 animate-pulse p-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={cn("flex items-end gap-3", i % 2 === 0 ? "flex-row" : "flex-row-reverse")}>
+              <div className="w-8 h-8 rounded-full bg-slate-100" />
+              <div className={cn("h-16 rounded-2xl bg-white ring-1 ring-slate-100 shadow-sm", i % 2 === 0 ? "w-2/3" : "w-1/2")} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && messages.length === 0 && (
         <div className="flex flex-col items-center justify-center flex-1 min-h-[300px] text-center space-y-6 animate-in fade-in zoom-in duration-500">
           <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-2 shadow-inner group">
             <MessageSquareHeart className="w-12 h-12 text-indigo-300 group-hover:scale-110 transition-transform duration-300" />
