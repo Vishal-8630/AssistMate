@@ -20,6 +20,8 @@ using System.Security.Claims;
 using AssistMate.Infrastructure.Realtime;
 using AssistMate.Application.Reviews.Interfaces;
 using AssistMate.Application.Reviews.Services;
+using AssistMate.Application.Notifications.Interfaces;
+using AssistMate.Application.Notifications.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,7 +105,7 @@ builder.Services.AddAuthentication(options =>
         {
             var path = context.HttpContext.Request.Path;
 
-            if (path.StartsWithSegments("/hubs/session"))
+            if (path.StartsWithSegments("/hubs"))
             {
 
                 var accessToken = context.Request.Query["access_token"];
@@ -130,6 +132,8 @@ builder.Services.AddScoped<IPresenceTracker, PresenceTracker>();
 builder.Services.AddScoped<ISessionAuthorizationService, SessionAuthorizationService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationRealtime, NotificationRealtime>();
 
 var app = builder.Build();
 
@@ -150,6 +154,7 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHub<SessionHub>("/hubs/session");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.MapControllers();
 

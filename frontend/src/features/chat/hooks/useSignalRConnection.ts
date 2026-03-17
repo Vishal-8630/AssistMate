@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { createSignalRConnection } from "@/lib/realtime/createSignalRConnection";
 

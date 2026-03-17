@@ -1,6 +1,8 @@
 ﻿using AssistMate.Application.Common.Exceptions;
 using AssistMate.Application.Common.Interfaces;
 using AssistMate.Application.Common.Mappings;
+using AssistMate.Application.Notifications.DTOs;
+using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Application.Reviews.DTOs;
 using AssistMate.Application.Reviews.DTOs.Requests;
 using AssistMate.Application.Reviews.Interfaces;
@@ -13,10 +15,12 @@ namespace AssistMate.Application.Reviews.Services
     public class ReviewService : IReviewService
     {
         private readonly IAppDbContext _dbContext;
+        private readonly INotificationService _notificationService;
 
-        public ReviewService(IAppDbContext dbContext)
+        public ReviewService(IAppDbContext dbContext, INotificationService notificationService)
         {
             _dbContext = dbContext;
+            _notificationService = notificationService;
         }
 
         public async Task<ReviewDto> CreateReviewAsync(Guid userId, CreateReviewRequest request)
@@ -57,6 +61,10 @@ namespace AssistMate.Application.Reviews.Services
 
             _dbContext.Reviews.Add(review);
             await _dbContext.SaveChangesAsync();
+
+            await _notificationService.CreateNotificationAsync(
+                new CreateNotificationRequest(revieweeId, "New Review", "Your received a new review", NotificationType.ReviewCreated, review.SessionId)
+            );
 
             return review.ToReviewDto();
         }

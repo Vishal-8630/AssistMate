@@ -3,20 +3,17 @@ using System;
 using AssistMate.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace AssistMate.Infrastructure.Data.Migrations
+namespace AssistMate.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260316124101_AddMessageReaction")]
-    partial class AddMessageReaction
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +48,8 @@ namespace AssistMate.Infrastructure.Data.Migrations
 
                     b.Property<string>("Emoji")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<Guid>("MessageId")
                         .HasColumnType("uuid");
@@ -61,11 +59,53 @@ namespace AssistMate.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MessageId");
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MessageId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("MessageReactions");
+                });
+
+            modelBuilder.Entity("AssistMate.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MessageReactions");
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("AssistMate.Domain.Entities.OtpVerification", b =>
@@ -244,8 +284,9 @@ namespace AssistMate.Infrastructure.Data.Migrations
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -255,7 +296,7 @@ namespace AssistMate.Infrastructure.Data.Migrations
 
                     b.HasIndex("ClientId", "AssistantId", "ServiceId")
                         .IsUnique()
-                        .HasFilter("\"Status\" IN (0,1)");
+                        .HasFilter("\"Status\" IN ('Requested', 'Active')");
 
                     b.ToTable("Sessions");
                 });
@@ -268,7 +309,8 @@ namespace AssistMate.Infrastructure.Data.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -384,6 +426,17 @@ namespace AssistMate.Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AssistMate.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("AssistMate.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AssistMate.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("AssistMate.Domain.Entities.User", "User")
@@ -453,12 +506,13 @@ namespace AssistMate.Infrastructure.Data.Migrations
                 {
                     b.HasOne("AssistMate.Domain.Entities.SessionMessage", "ParentMessage")
                         .WithMany("Replies")
-                        .HasForeignKey("ParentMessageId");
+                        .HasForeignKey("ParentMessageId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AssistMate.Domain.Entities.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AssistMate.Domain.Entities.Session", "Session")

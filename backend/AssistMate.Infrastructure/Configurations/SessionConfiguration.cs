@@ -11,6 +11,7 @@ namespace AssistMate.Infrastructure.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Status)
+                .HasConversion<string>()
                 .IsRequired();
 
             builder.Property(x => x.CreatedAt)
@@ -32,7 +33,7 @@ namespace AssistMate.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(x => new { x.ClientId, x.AssistantId, x.ServiceId })
-                .HasFilter("\"Status\" IN (0,1)")
+                .HasFilter("\"Status\" IN ('Requested', 'Active')")
                 .IsUnique();
         }
     }

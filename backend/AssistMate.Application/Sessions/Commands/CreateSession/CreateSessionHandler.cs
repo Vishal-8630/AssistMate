@@ -1,5 +1,7 @@
 ﻿using AssistMate.Application.Common.Exceptions;
 using AssistMate.Application.Common.Interfaces;
+using AssistMate.Application.Notifications.DTOs;
+using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Domain.Entities;
 using AssistMate.Domain.Enums;
 using MediatR;
@@ -10,10 +12,12 @@ namespace AssistMate.Application.Sessions.Commands.CreateSession
     public class CreateSessionHandler : IRequestHandler<CreateSessionCommand, CreateSessionResponse>
     {
         private readonly IAppDbContext _dbContext;
+        private readonly INotificationService _notificationService;
 
-        public CreateSessionHandler(IAppDbContext dbContext)
+        public CreateSessionHandler(IAppDbContext dbContext, INotificationService notificationService)
         {
             _dbContext = dbContext;
+            _notificationService = notificationService;
         }
 
         public async Task<CreateSessionResponse> Handle(CreateSessionCommand request, CancellationToken cancellationToken)
@@ -52,6 +56,9 @@ namespace AssistMate.Application.Sessions.Commands.CreateSession
                 throw new AppException("An active or pending session already exists."); 
             }
 
+            await _notificationService.CreateNotificationAsync(
+                new CreateNotificationRequest(request.AssistantId, "New Session Request", "A client has requested a session", NotificationType.SessionCreated, session.Id)
+            );
             return new CreateSessionResponse(SessionId: session.Id, Status: session.Status.ToString());
         }
     }

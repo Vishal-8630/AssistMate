@@ -1,5 +1,7 @@
 ﻿using AssistMate.Application.Common.Exceptions;
 using AssistMate.Application.Common.Interfaces;
+using AssistMate.Application.Notifications.DTOs;
+using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +12,13 @@ namespace AssistMate.Application.Sessions.Commands.CompleteSession
     {
         private readonly IAppDbContext _dbContext;
         private readonly ICurrentUserService _currentUser;
+        private readonly INotificationService _notificationService;
 
-        public CompleteSessionHandler(IAppDbContext dbContext, ICurrentUserService currentUser)
+        public CompleteSessionHandler(IAppDbContext dbContext, ICurrentUserService currentUser, INotificationService notificationService)
         {
             _dbContext = dbContext;
             _currentUser = currentUser;
+            _notificationService = notificationService;
         }
 
         public async Task Handle(CompleteSessionCommand request, CancellationToken cancellationToken)
@@ -34,6 +38,16 @@ namespace AssistMate.Application.Sessions.Commands.CompleteSession
             session.Status = SessionStatus.Completed;
             session.CompletedAt = DateTime.UtcNow;
 
+            var receiverId = session.ClientId == _currentUser.UserId
+                ? session.AssistantId
+                : session.ClientId;
+
+            if (receiverId != _currentUser.UserId)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    new CreateNotificationRequest(receiverId, "Session Completed", "A session has been completed", NotificationType.SessionCompleted, session.Id)
+                );
+            }
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }

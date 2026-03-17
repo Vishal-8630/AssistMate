@@ -1,5 +1,7 @@
 ﻿using AssistMate.Application.Common.Exceptions;
 using AssistMate.Application.Common.Interfaces;
+using AssistMate.Application.Notifications.DTOs;
+using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +11,11 @@ namespace AssistMate.Application.Sessions.Commands.RejectSession
     public class RejectSessionHandler : IRequestHandler<RejectSessionCommand, RejectSessionResponse>
     {
         private readonly IAppDbContext _dbContext;
-
-        public RejectSessionHandler(IAppDbContext dbContext)
+        private readonly INotificationService _notificationService;
+        public RejectSessionHandler(IAppDbContext dbContext, INotificationService notificationService)
         {
             _dbContext = dbContext;
+            _notificationService = notificationService;
         }
 
         public async Task<RejectSessionResponse> Handle(RejectSessionCommand request, CancellationToken cancellationToken)
@@ -34,6 +37,9 @@ namespace AssistMate.Application.Sessions.Commands.RejectSession
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            await _notificationService.CreateNotificationAsync(
+                new CreateNotificationRequest(session.ClientId, "Session Rejected", "Assistant has rejected your session", NotificationType.SessionRejected, session.Id)
+            );
             return new RejectSessionResponse(SessionId: session.Id, Status: session.Status.ToString());
         }
     }
