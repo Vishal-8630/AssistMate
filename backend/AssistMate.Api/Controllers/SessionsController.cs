@@ -3,6 +3,7 @@ using AssistMate.Application.Sessions.Commands.AcceptSession;
 using AssistMate.Application.Sessions.Commands.CompleteSession;
 using AssistMate.Application.Sessions.Commands.CreateSession;
 using AssistMate.Application.Sessions.Commands.RejectSession;
+using AssistMate.Application.Sessions.Commands.StartSession;
 using AssistMate.Application.Sessions.DTOs;
 using AssistMate.Application.Sessions.GetMySessions;
 using AssistMate.Application.Sessions.GetSessionDetails;
@@ -31,11 +32,10 @@ namespace AssistMate.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateSessionRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] StartSessionCommand command, CancellationToken cancellationToken)
         {
             var clientId = User.GetUserId();
-            var command = new CreateSessionCommand(clientId, request.AssistantId, request.ServiceId);
-            var result = await _mediator.Send(command, cancellationToken);
+            var result = await _mediator.Send(command with { ClientId = clientId }, cancellationToken);
 
             return Ok(result);
         }

@@ -17,6 +17,9 @@ namespace AssistMate.Domain.Entities
 
         public SessionStatus Status { get; set; }
 
+        public decimal Amount { get; set; }
+        public PaymentStatus PaymentStatus { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? AcceptedAt { get; set; }
         public DateTime? CompletedAt { get; set; }

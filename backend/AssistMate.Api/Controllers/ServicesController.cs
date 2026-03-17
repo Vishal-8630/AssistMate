@@ -3,6 +3,7 @@ using AssistMate.Application.Services.Interfaces;
 using AssistMate.Application.Services.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using AssistMate.Application.Common.Security;
+using AssistMate.Domain.Enums;
 
 namespace AssistMate.Api.Controllers
 {
@@ -49,6 +50,17 @@ namespace AssistMate.Api.Controllers
             var assistants = await _serviceManager.GetAssistantsByServiceAsync(id);
 
             return Ok(assistants);
+        }
+
+        [HttpGet("categories")]
+        public ActionResult<List<string>> GetCategories()
+        {
+            var categories = Enum.GetValues(typeof(ServiceCategory))
+                .Cast<ServiceCategory>()
+                .Select(c => c.ToString())
+                .ToList();
+
+            return Ok(categories);
         }
     }
 }

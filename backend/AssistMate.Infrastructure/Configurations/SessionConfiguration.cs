@@ -17,6 +17,14 @@ namespace AssistMate.Infrastructure.Configurations
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
+            builder.Property(x => x.PaymentStatus)
+                .HasConversion<string>()
+                .IsRequired();
+
+            builder.Property(x => x.Amount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
             builder.HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)

@@ -3,6 +3,7 @@ using System;
 using AssistMate.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AssistMate.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317111402_AddPaymentToSession")]
+    partial class AddPaymentToSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,10 +217,6 @@ namespace AssistMate.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -230,9 +229,6 @@ namespace AssistMate.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
@@ -244,92 +240,23 @@ namespace AssistMate.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("8f4a2c3e-6d91-4f8e-bf2d-2e3d9b1a7c10"),
-                            Category = "Tech",
                             Description = "Technical help and troubleshooting",
                             IsActive = true,
-                            Name = "Tech Support",
-                            Price = 199m
+                            Name = "Tech Support"
                         },
                         new
                         {
                             Id = new Guid("c2a9d5f1-3b74-4d6f-9e8a-5f3b1c7d9a21"),
-                            Category = "Business",
                             Description = "Basic legal consultation",
                             IsActive = true,
-                            Name = "Legal Advice",
-                            Price = 499m
+                            Name = "Legal Advice"
                         },
                         new
                         {
                             Id = new Guid("5d7e9a12-4c3f-4b8a-91e6-7f2a3c9d8b32"),
-                            Category = "Health",
                             Description = "Personal fitness guidance",
                             IsActive = true,
-                            Name = "Fitness Coaching",
-                            Price = 299m
-                        },
-                        new
-                        {
-                            Id = new Guid("5d7e9a12-4c3f-4b8a-91e6-7f2a3c9e9b32"),
-                            Category = "Career",
-                            Description = "Professional resume feedback",
-                            IsActive = true,
-                            Name = "Resume Review",
-                            Price = 149m
-                        },
-                        new
-                        {
-                            Id = new Guid("5d7e9a12-4c2f-4b8a-91e6-7f4a3c9d8b32"),
-                            Category = "Career",
-                            Description = "Practice interviews with feedback",
-                            IsActive = true,
-                            Name = "Mock Interview",
-                            Price = 399m
-                        },
-                        new
-                        {
-                            Id = new Guid("5d9e9a12-4c3f-4b8a-91e6-6f2a3c9d8b32"),
-                            Category = "Business",
-                            Description = "Guidance for starting a business",
-                            IsActive = true,
-                            Name = "Startup Advice",
-                            Price = 599m
-                        },
-                        new
-                        {
-                            Id = new Guid("3d7e9a12-4c3f-4b8a-91e6-7f2a3c9d1b32"),
-                            Category = "Tech",
-                            Description = "Help with coding problems",
-                            IsActive = true,
-                            Name = "Coding Help",
-                            Price = 249m
-                        },
-                        new
-                        {
-                            Id = new Guid("7a5e9a12-4c3f-4b8a-91e6-7f2a3c9d8b32"),
-                            Category = "Education",
-                            Description = "Help with study planning",
-                            IsActive = true,
-                            Name = "Study Guidance",
-                            Price = 199m
-                        },
-                        new
-                        {
-                            Id = new Guid("5d7e9a12-4c3f-4b8a-91e6-7f2a3c8d8b23"),
-                            Category = "Finance",
-                            Description = "Budgeting and saving advice",
-                            IsActive = true,
-                            Name = "Personal Finance Help",
-                            Price = 349m
-                        },
-                        new
-                        {
-                            Id = new Guid("5d9e7a21-4c3f-4b8a-91e6-7f2a3c9d8b32"),
-                            Category = "Lifestyle",
-                            Description = "Personal growth and mindset coaching",
-                            IsActive = true,
-                            Name = "Life Coaching",
-                            Price = 299m
+                            Name = "Fitness Coaching"
                         });
                 });
 

@@ -10,7 +10,9 @@ namespace AssistMate.Application.Common.Mappings
             return new ServiceDto(
                 service.Id,
                 service.Name,
-                service.Description
+                service.Description,
+                service.Price,
+                service.Category
             );
         }
     }

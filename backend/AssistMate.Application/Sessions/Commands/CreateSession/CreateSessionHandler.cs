@@ -42,6 +42,8 @@ namespace AssistMate.Application.Sessions.Commands.CreateSession
                 AssistantId = request.AssistantId,
                 ServiceId = request.ServiceId,
                 Status = SessionStatus.Requested,
+                Amount = request.Amount,
+                PaymentStatus = request.PaymentStatus,
                 CreatedAt = DateTime.UtcNow
             };
 

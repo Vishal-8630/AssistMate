@@ -5,6 +5,7 @@ import {
   getAllServices,
   getAssistantsByService,
   getMyServices,
+  getServiceCategories,
   updateMyServices,
 } from "./api";
 import { UpdateAssistantServiceRequest } from "./types";
@@ -49,5 +50,13 @@ export const useAssistantsByService = (serviceId: string) => {
     queryKey: SERVICE_QUERY_KEYS.assistants(serviceId),
     queryFn: () => getAssistantsByService(serviceId),
     enabled: !!serviceId,
+  });
+};
+
+export const useServiceCategories = () => {
+  return useQuery({
+    queryKey: ["service-categories"],
+    queryFn: getServiceCategories,
+    staleTime: 1000 * 60 * 60,
   });
 };

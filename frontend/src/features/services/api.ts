@@ -21,3 +21,8 @@ export const getAssistantsByService = async (serviceId: string) => {
   const { data } = await api.get(`/services/${serviceId}/assistants`);
   return data;
 };
+
+export const getServiceCategories = async (): Promise<string[]> => {
+  const { data } = await api.get("/services/categories");
+  return data;
+};

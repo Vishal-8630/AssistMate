@@ -1,4 +1,6 @@
-﻿namespace AssistMate.Domain.Entities
+﻿using AssistMate.Domain.Enums;
+
+namespace AssistMate.Domain.Entities
 {
     public class Service
     {
@@ -6,16 +8,8 @@
         public string Name { get; private set; } = null!;
         public string? Description { get; private set; }
         public bool IsActive { get; private set; }
+        public decimal Price { get; set; }
+        public ServiceCategory Category { get; set; }
         public ICollection<AssistantService> AssistantServices { get; private set; } = new List<AssistantService>();
-
-        protected Service() { }
-
-        public Service(string name, string? description = null)
-        {
-            Id = Guid.NewGuid();
-            Name = name.Trim();
-            Description = description?.Trim();
-            IsActive = true;
-        }
     }
 }
