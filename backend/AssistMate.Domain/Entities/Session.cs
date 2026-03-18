@@ -19,6 +19,9 @@ namespace AssistMate.Domain.Entities
 
         public decimal Amount { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
+        public string? RazorpayOrderId { get; set; }
+        public Guid? SuccessfulPaymentId { get; set; }
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
         public DateTime CreatedAt { get; set; }
         public DateTime? AcceptedAt { get; set; }

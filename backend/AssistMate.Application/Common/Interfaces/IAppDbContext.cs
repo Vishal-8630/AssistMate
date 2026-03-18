@@ -15,6 +15,7 @@ namespace AssistMate.Application.Common.Interfaces
         DbSet<MessageReaction> MessageReactions { get; }
         DbSet<Review> Reviews { get; }
         DbSet<Notification> Notifications { get; }
+        DbSet<Payment> Payments { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellation = default);
     }
 }

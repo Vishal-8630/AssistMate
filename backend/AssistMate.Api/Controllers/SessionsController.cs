@@ -32,10 +32,19 @@ namespace AssistMate.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] StartSessionCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateSessionCommand command, CancellationToken cancellationToken)
         {
             var clientId = User.GetUserId();
             var result = await _mediator.Send(command with { ClientId = clientId }, cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPost("{id}/start")]
+        public async Task<IActionResult> Start(Guid id, [FromBody] StartSessionCommand command, CancellationToken cancellationToken)
+        {
+            var clientId = User.GetUserId();
+            var result = await _mediator.Send(command with { ClientId = clientId, SessionId = id }, cancellationToken);
 
             return Ok(result);
         }

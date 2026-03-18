@@ -21,6 +21,7 @@ namespace AssistMate.Infrastructure.Data
         public DbSet<MessageReaction> MessageReactions => Set<MessageReaction>();
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<Payment> Payments => Set<Payment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

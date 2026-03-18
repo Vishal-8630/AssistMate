@@ -26,6 +26,12 @@ namespace AssistMate.Application.Sessions.Commands.CreateSession
                 .Include(u => u.AssistantServices)
                 .FirstOrDefaultAsync(u => u.Id == request.AssistantId && u.Role == UserRole.Assistant, cancellationToken);
 
+            var service = await _dbContext.Services
+                .FirstOrDefaultAsync(s => s.Id == request.ServiceId, cancellationToken);
+
+            if (service == null || !service.IsActive)
+                throw new AppException("Service not found", 404);
+
             if (assistant == null)
                 throw new AppException("Assistant not found", 404);
 
@@ -42,8 +48,8 @@ namespace AssistMate.Application.Sessions.Commands.CreateSession
                 AssistantId = request.AssistantId,
                 ServiceId = request.ServiceId,
                 Status = SessionStatus.Requested,
-                Amount = request.Amount,
-                PaymentStatus = request.PaymentStatus,
+                Amount = service.Price,
+                PaymentStatus = PaymentStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 

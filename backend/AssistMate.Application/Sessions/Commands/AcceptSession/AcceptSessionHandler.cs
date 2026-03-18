@@ -2,6 +2,7 @@
 using AssistMate.Application.Common.Interfaces;
 using AssistMate.Application.Notifications.DTOs;
 using AssistMate.Application.Notifications.Interfaces;
+using AssistMate.Application.Payments.Interfaces;
 using AssistMate.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,13 @@ namespace AssistMate.Application.Sessions.Commands.AcceptSession
     {
         private readonly IAppDbContext _dbContext;
         private readonly INotificationService _notificationService;
+        private readonly IPaymentService _paymentService;
 
-        public AcceptSessionHandler(IAppDbContext dbContext, INotificationService notificationService)
+        public AcceptSessionHandler(IAppDbContext dbContext, INotificationService notificationService, IPaymentService paymentService)
         {
             _dbContext = dbContext;
             _notificationService = notificationService;
+            _paymentService = paymentService;
         }
 
         public async Task<AcceptSessionResponse> Handle(AcceptSessionCommand request, CancellationToken cancellationToken)
@@ -33,15 +36,17 @@ namespace AssistMate.Application.Sessions.Commands.AcceptSession
             if (session.Status != SessionStatus.Requested)
                 throw new AppException("Session cannot be accepted");
 
-            session.Status = SessionStatus.Active;
+            session.Status = SessionStatus.PendingPayment;
             session.AcceptedAt = DateTime.UtcNow;
+
+            var paymentResult = await _paymentService.CreatePaymentAsync(session.Id, session.ClientId, session.Amount);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             await _notificationService.CreateNotificationAsync(
-                new CreateNotificationRequest(session.ClientId, "Session Accepted", "Assistant has accepted your session", NotificationType.SessionAccepted, session.Id)
+                new CreateNotificationRequest(session.ClientId, "Session Accepted", "Assistant has accepted your session. Please complete payment to start", NotificationType.SessionAccepted, session.Id)
             );
-            return new AcceptSessionResponse(SessionId: session.Id, session.Status.ToString());
+            return new AcceptSessionResponse(SessionId: session.Id, session.Status.ToString(), paymentResult.OrderId, paymentResult.Amount, paymentResult.Currency);
         }
     }
 }

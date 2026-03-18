@@ -40,6 +40,20 @@ namespace AssistMate.Infrastructure.Configurations
                 .HasForeignKey(x => x.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasMany(x => x.Payments)
+                .WithOne(p => p.Session)
+                .HasForeignKey(p => p.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne<Payment>()
+                .WithMany()
+                .HasForeignKey(x => x.SuccessfulPaymentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasIndex(x => x.Status);
+            builder.HasIndex(x => x.PaymentStatus);
+            builder.HasIndex(x => x.SuccessfulPaymentId);
+
             builder.HasIndex(x => new { x.ClientId, x.AssistantId, x.ServiceId })
                 .HasFilter("\"Status\" IN ('Requested', 'Active')")
                 .IsUnique();

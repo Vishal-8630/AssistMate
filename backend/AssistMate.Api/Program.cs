@@ -22,6 +22,9 @@ using AssistMate.Application.Reviews.Interfaces;
 using AssistMate.Application.Reviews.Services;
 using AssistMate.Application.Notifications.Interfaces;
 using AssistMate.Application.Notifications.Services;
+using AssistMate.Application.Payments.Interfaces;
+using AssistMate.Application.Payments.Services;
+using AssistMate.Infrastructure.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -134,6 +137,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserServices>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationRealtime, NotificationRealtime>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IRazorpayPaymentService, RazorpayPaymentService>();
 
 var app = builder.Build();
 
